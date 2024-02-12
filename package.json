@@ -1,11 +1,11 @@
 {
-  "name": "azabab",
-  "short_name": "azabab",
-  "description": "azabab",
+  "name": "air-port",
+  "short_name": "air-port",
+  "description": "air-port",
   "version": "0.9.19",
   "private": true,
-  "homepage": "https://github.com/burggraf/azabab",
-  "menu_title": "Azabab",
+  "homepage": "https://github.com/burggraf/air-port",
+  "menu_title": "air-port",
   "menu_subtitle": "High Availability Made Simple",
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
@@ -13,7 +13,7 @@
   "profileKey": "id",
   "repository": {
     "type": "git",
-    "url": "https://github.com/burggraf/azabab"
+    "url": "https://github.com/burggraf/air-port"
   },
   "scripts": {
     "dev": "vite dev --host 0.0.0.0 --port 8100 -- --open",

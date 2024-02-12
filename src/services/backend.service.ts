@@ -20,7 +20,7 @@ if (host === 'localhost' || host === '127.0.0.1') port = '8090';
 
 
 if (false && (host === 'localhost' || host === '127.0.0.1')) {
-  apiURL = "https://east-3.azabab.com";
+  apiURL = "https://air-port.dev";
 } else {
   // get current protocol (http or https)
   const protocol = window.location.protocol;

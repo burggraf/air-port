@@ -1,8 +1,8 @@
 {
-    "name": "Azabab",
-    "short_name": "Azabab",
+    "name": "air-port",
+    "short_name": "air-port",
     "start_url": "/",
-    "description": "Azabab: High Availablity Made Easy",
+    "description": "air-port: Where your app takes off!",
     "background_color": "#387ef5",
     "theme_color": "#387ef5",
     "icons": [

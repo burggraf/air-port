@@ -66,7 +66,7 @@
 			<ion-buttons slot="start">
 				<ion-menu-button />
 			</ion-buttons>
-			<ion-title>Azabab Projects</ion-title>
+			<ion-title>air-port Projects</ion-title>
 			<ion-buttons slot="end">
 				{#if $currentUser?.verified === true}
 					<ion-button on:click={newProject}>

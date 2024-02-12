@@ -74,8 +74,8 @@
 						src="/icon.svg"
 					/>
 					<div>
-						<h1 style="font-size: 30pt;"><b>Azabab</b></h1>
-						<p style="margin-top: -5px;">High Availability Made Simple</p>
+						<h1 style="font-size: 30pt;"><b>air-port</b></h1>
+						<p style="margin-top: -5px;">Where your app takes off!</p>
 					</div>
 				</div>			
 				<div class="center">
@@ -111,8 +111,8 @@
 						src="/icon.svg"
 					/>
 					<div>
-						<h1 style="font-size: 30pt;"><b>Azabab</b></h1>
-						<p style="margin-top: -5px;">High Availability Made Simple</p>
+						<h1 style="font-size: 30pt;"><b>air-port</b></h1>
+						<p style="margin-top: -5px;">Where your app takes off!</p>
 					</div>
 				</div>			
 			{/if}
@@ -124,7 +124,7 @@
 		{/if}
 		<div class="flex-container">
 			<div class="flex-item secondary">
-				<h3>What is Azabab?</h3>
+				<h3>What is air-port?</h3>
 				<ul>
 					<li>Pocketbase Hosting in 5 seconds</li>
 					<li>High Availabilty</li>
@@ -215,7 +215,7 @@
 			<ion-buttons slot="start">
 				<ion-menu-button />
 			</ion-buttons>
-			<ion-title>Azabab</ion-title>
+			<ion-title>air-port</ion-title>
 		</ion-toolbar>
 	{/if}
 </ion-header>
@@ -223,7 +223,7 @@
 	<div class="center flex-container" style="max-width: 500px; background-color:pink;">
 		<div style="text-align: center;">
 			<span style="font-style: italic;">
-				Welcome to Azabab
+				Welcome to air-port
 			</span>
 			<br/>
 			<br/>

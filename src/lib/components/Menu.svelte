@@ -92,7 +92,7 @@
 			url: 'informationMenu',
 			icon: 'informationCircle',
 			children: [
-				{ title: 'About Azabab', url: 'about', icon: 'map', disabled: false },
+				{ title: 'About air-port', url: 'about', icon: 'map', disabled: false },
 				{ title: 'Terms of Service', url: 'terms', icon: 'map', disabled: false },
 				{ title: 'Privacy Policy', url: 'privacy', icon: 'map', disabled: false },
 				{ title: 'Support', url: 'support', icon: 'map', disabled: false },
