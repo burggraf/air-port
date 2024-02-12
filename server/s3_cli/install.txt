@@ -1,0 +1,15 @@
+to delete a folder from s3 bucket:
+aws s3 rm s3://azabab/<domain>/<port> --recursive --endpoint-url https://<endpoint-url> 
+
+~/.aws/config
+[default]
+aws_access_key_id = <ACCESS_KEY>
+aws_secret_access_key = <SECRET_KEY>
+region = us-west-1
+s3 =
+    endpoint_url = https://azabab.<endpoint-url>
+
+~/.aws/credentials
+[default]
+aws_access_key_id = <ACCESS_KEY>
+aws_secret_access_key = <SECRET_KEY>

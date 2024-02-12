@@ -1,0 +1,24 @@
+
+# Backend for alpha_lax_hh_azabab_com
+backend backend_10001_local
+    http-request set-header X-Original-URI %[url]
+    http-request set-header X-Original-Port 10001
+    http-request set-header X-PB-Version v0.21.1
+    server local_app_10001 127.0.0.1:10001 check
+    server local_error_handler_10001 127.0.0.1:5000 backup
+
+# Backend for backend_10001_global
+backend backend_10001_global
+    http-request set-header X-Original-URI %[url]
+    http-request set-header X-Original-Port 10001
+    http-request set-header X-PB-Version v0.21.1
+    balance roundrobin
+    stick-table type string len 50 size 200k expire 30m
+    stick on cookie(SERVERID)
+    server global_app_10001 127.0.0.1:10001 check
+    server global_error_handler_10001 127.0.0.1:5000 backup
+
+    # add any other servers below
+    
+    #server west-3_10001 alpha.west-3.azabab.com:443 check ssl verify none
+    #server west-4_10001 alpha.west-4.azabab.com:443 check ssl verify none

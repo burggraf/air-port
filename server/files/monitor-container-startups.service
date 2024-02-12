@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor Docker Container Startups
+
+[Service]
+ExecStart=/home/ubuntu/monitor-container-startups.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

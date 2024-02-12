@@ -1,0 +1,34 @@
+# Variables to be replaced:
+# <PORT> (e.g. 10001)
+# <HOST> (nats server, e.g. west-1.azabab.com)
+# <NODE> (e.g. 1)
+# <READWRITE> (e.g. true or false for READONLY)
+# <ENDPOINT> (S3 endpoint)
+# <ACCESS_KEY> (S3 access key)
+# <SECRET> (S3 secret)
+# <BUCKET> (S3 bucket)
+seq_map_path="/marmot/marmot.cbor"
+db_path="/home/pocketbase/pb_data/data.db"
+node_id=<NODE>
+
+replicate=true
+publish=<READWRITE>
+
+[snapshot]
+enabled=true
+store="s3"
+interval=3600000
+
+[snapshot.s3]
+endpoint="<ENDPOINT>"
+path="marmot/<PORT>"
+use_ssl=true
+access_key="<ACCESS_KEY>"
+secret="<SECRET>"
+bucket="<BUCKET>"
+
+[nats]
+urls=["nats://<HOST>:4222"]
+#server_config=""
+subject_prefix="change-log-<PORT>"
+stream_prefix="changes-<PORT>"

@@ -1,0 +1,14 @@
+[Unit]
+Description=Stats File Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/stats-file-server.exe
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

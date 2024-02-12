@@ -1,0 +1,15 @@
+[Unit]
+Description=Rust Server Service
+After=network.target
+
+[Service]
+Environment="ENVIRONMENT=production"
+Type=simple
+User=root
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/rust-server.exe
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

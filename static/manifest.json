@@ -1,0 +1,69 @@
+{
+    "name": "Azabab",
+    "short_name": "Azabab",
+    "start_url": "/",
+    "description": "Azabab: High Availablity Made Easy",
+    "background_color": "#387ef5",
+    "theme_color": "#387ef5",
+    "icons": [
+      {
+        "src": "/icon-32.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-64.png",
+        "sizes": "64x64",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-96.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-128.png",
+        "sizes": "128x128",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon144.png",
+        "sizes": "144x144",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon152.png",
+        "sizes": "152x152",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-168.png",
+        "sizes": "168x168",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon180.png",
+        "sizes": "180x180",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-256.png",
+        "sizes": "256x256",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-384.png",
+        "sizes": "384x384",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }]
+  }

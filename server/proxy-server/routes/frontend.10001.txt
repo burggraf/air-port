@@ -1,0 +1,11 @@
+
+    acl is_10001_local hdr(host) -i app.lax.azabab.com
+    acl is_10001_global hdr(host) -i app.azabab.com 
+
+    # Define the condition for primary server down
+    acl primary_down_10001 nbsrv(backend_10001_global) lt 2
+
+
+    # Backend selection based on ACLs
+    use_backend backend_10001_local if is_10001_local
+    use_backend backend_10001_global if is_10001_global
