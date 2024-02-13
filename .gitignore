@@ -7,6 +7,8 @@ node_modules
 .env.*
 !.env.example
 
+pb_data/
+
 # who still uses firebase?
 /.firebase
 .firebaserc
