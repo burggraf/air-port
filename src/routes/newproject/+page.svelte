@@ -20,7 +20,7 @@
 	import { dropdownmenu } from '$components/DropdownMenu'
 	import { loadingBox } from '$services/loadingMessage'
 	import { getRegionName, regions } from '$services/region.service'
-	import type { Project, ProjectInstance, Site, Key, ProjectInstanceKey } from '$models/interfaces'
+	// import type { Project, ProjectInstance, Site, Key, ProjectInstanceKey } from '$models/interfaces'
 	interface IObjectKeys {
 		[key: string]: any // Adjust the type according to your needs
 	}
@@ -97,21 +97,12 @@
 		if (!project_instance.region) {
 			toast('Select a region', 'danger')
 		}
-		// look up the site to see if it's active
-		const active = regions.find((site) => site.id === project_instance.site_id)?.active
-		if (!active) {
-			toast('The site you selected is not currently active', 'danger')
-			return
-		} else {
-		}
-		const site = regions.find((site) => site.id === project_instance.id)
 		const loader = await loadingBox('Creating new project...')
 		const { data, error } = await pb.send('/createproject', {
 			method: 'POST',
 			body: {
 				project,
 				project_instance,
-				site,
 			},
 		})
 		loader.dismiss()
@@ -154,7 +145,7 @@
 			project[field] = value
 		}
 	}
-	const chooseSite = async (e: any) => {
+	const chooseRegion = async (e: any) => {
 		let items = []
 		for (let i = 0; i < regions.length; i++) {
 			const region = regions[i]
@@ -292,7 +283,7 @@
             </ion-row> -->
 			<ion-row>
 				<ion-col>
-					<ion-button size="small" color="secondary" expand="block" on:click={chooseSite}
+					<ion-button size="small" color="secondary" expand="block" on:click={chooseRegion}
 						>{getRegionName(project_instance.region) || 'Select region'}</ion-button
 					>
 				</ion-col>
@@ -340,20 +331,3 @@ project_instance: {JSON.stringify(project_instance, null, 2)}
 </pre>
 	</ion-content>
 </IonPage>
-<!--
-		if (project.name.trim().length === 0) {
-			toast('Project name is required', 'danger')
-			return
-		}
-		if (!project.domain) {
-			toast('Project domain is required', 'danger')
-			return
-		}
-		if (!domainAvailable) {
-			toast('Domain is not available', 'danger')
-			return
-		}
-        if (!project_instance.site_id) {
-
-
--->
