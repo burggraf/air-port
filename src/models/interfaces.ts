@@ -4,35 +4,30 @@ export interface IObjectKeys {
 
 export interface Project extends IObjectKeys {
     id: string
-    domain: string
     name: string
+    domain: string
+    fqd: string
     owner: string
-    ownertype: string
-    port: number
     metadata?: any
     type?: string
+    created?: string
+    updated?: string
 }
 export interface ProjectInstance extends IObjectKeys {
-    name: string
     project_id: string
-    owner: string
-    ownertype: string
-    code: string
-    domain: string
-    id: string
-    port: number
-    site_domain: string
-    site_name: string
-    site_id: string
     type: string
-	db_streaming_backup_location: string
-	logs_streaming_backup_location: string    
-    db_streaming_backup_retention: number
-    logs_streaming_backup_retention: number
-    instance_status: string
+    status: string
     metadata?: any
-    project_type?: string
+    region: string
+    machine_id?: string
+    ipv6?: string
+    owner: string  
+    created?: string
+    updated?: string  
 }
+
+
+
 export interface Site {
     id: string
     name: string
