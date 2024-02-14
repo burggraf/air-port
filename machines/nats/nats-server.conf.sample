@@ -1,0 +1,34 @@
+#listen: 0.0.0.0:4222
+port: 4222
+#listen: [REGION].air-port-nats.internal:4222
+
+cluster: {
+  port: 5222,
+  name: "air-port-nats",
+  routes: [
+    "nats://user:pass@sjc.air-port-nats.internal:5222",
+    "nats://user:pass@mia.air-port-nats.internal:5222",
+    "nats://user:pass@ams.air-port-nats.internal:5222"
+  ],
+}
+
+jetstream {
+  store_dir: "/jetstream"
+}
+
+server_name: "[HOSTNAME]"
+
+accounts: {
+  $SYS {
+    users = [
+      {user: "user", password: "pass"}
+    ]
+  },
+  TEAM_A {
+    jetstream: enabled,
+    users = [
+      {user: "jetstream", password: "pass"}
+    ]
+  }
+}
+

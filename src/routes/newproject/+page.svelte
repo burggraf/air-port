@@ -20,6 +20,7 @@
 	import { dropdownmenu } from '$components/DropdownMenu'
 	import { loadingBox } from '$services/loadingMessage'
 	import { getRegionName, regions } from '$services/region.service'
+	import { showConfirm } from '$services/alert.service'
 	// import type { Project, ProjectInstance, Site, Key, ProjectInstanceKey } from '$models/interfaces'
 	interface IObjectKeys {
 		[key: string]: any // Adjust the type according to your needs
@@ -107,12 +108,16 @@
 		})
 		loader.dismiss()
 		if (error) {
-			if (error === 'constraint failed: UNIQUE constraint failed: projects.domain (2067)')
-				toast('Project domain already exists', 'danger')
-			else toast(error, 'danger')
+			toast(error, 'danger')
 		} else {
+			await showConfirm({
+			header: 'Project successfully launched!  See: https://${project.domain}.fly.dev/_/',
+			message: `Administrate your project now?`,
+			okHandler: async () => {
+				window.open(`https://${project.domain}.fly.dev/_/`, '_blank')
+			},
+		})
 			// open the project in a new windows
-			window.open(`https://${project.domain}.${project_instance.site_domain}/_/`, '_blank')
 			goto(`/instance/${data}`)
 		}
 	}

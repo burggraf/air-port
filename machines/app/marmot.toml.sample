@@ -1,0 +1,18 @@
+seq_map_path="/pb/marmot.cbor"
+db_path="/pb/pb_data/data.db"
+node_id=[NODE_ID]
+
+replicate=true
+publish=true
+
+[snapshot]
+enabled=false
+
+[nats]
+urls=[
+    "nats://jetstream:pass@sjc.air-port-nats.internal:4222",
+    "nats://jetstream:pass@mia.air-port-nats.internal:4222",
+    "nats://jetstream:pass@ams.air-port-nats.internal:4222",
+]
+subject_prefix="[APP_NAME]-change-log"
+stream_prefix="[APP_NAME]-changes"
