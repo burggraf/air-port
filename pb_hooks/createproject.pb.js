@@ -52,12 +52,17 @@ routerAdd('POST', '/createproject', (c) => {
 	const projectregion = data?.project_instance?.region
 
 	console.log('createproject 03')
+	const { data: insertProjectData, error: insertProjectError } = execute(
+		`INSERT INTO project (name, domain, fqd, type, owner, metadata) VALUES ('${projectname}', '${projectdomain}', '${projectdomain}.fly.dev', '${projecttype}', '${projectowner}', '{}')`
+	)
+	if (insertProjectError) {
+		return c.json(200, { data: null, error: insertProjectError })
+	} else {
+		console.log('insertProjectData', insertProjectData)
+	}
+	console.log('createproject 04')
+
 	//console.log('config.FLY_ORG_TOKEN', config.FLY_ORG_TOKEN)
-	console.log(JSON.stringify({
-		"app_name": projectname,
-		"network": projectregion,
-		"org_slug": "air-port-dev"
-	  }))
 
 	// CREATE APP, VOLUME, MACHINE
 	let cmd = $os.cmd(`fly`,`apps`,`create`,`${projectdomain}`,`--org`,`air-port-dev`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
@@ -69,6 +74,23 @@ routerAdd('POST', '/createproject', (c) => {
 	cmd = $os.cmd(`fly`,`deploy`,`--app`,`${projectdomain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:latest`,`--region`,`${projectregion}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
 	output = String.fromCharCode(...cmd.output());
 	console.log('machine create output', output)
+	// get the app status
+	cmd = $os.cmd(`fly`,`status`,`--app`,`${projectdomain}`,`-j`)
+	let jsonStatus = String.fromCharCode(...cmd.output());
+	// put the app status into the project table
+	jsonStatus = jsonStatus.replace(/'/g, "''");
+	console.log('jsonStatus', jsonStatus)
+	const sql = `update project set metadata = '${jsonStatus.replace(/'/g,"''")}' WHERE domain = '${projectdomain}'`;
+
+	const { data: statusData, error: statusError } = execute( sql )
+	if (statusError) {
+		return c.json(200, { data: null, error: statusError })
+	}
+	else {
+		console.log('statusData', statusData)	
+	}
+
+	// fly status --app old-scissors-same -j
 	if (output.indexOf('Visit your newly deployed app at') > -1) {
 		return c.json(200, { data: "OK", error: null })
 	} else {

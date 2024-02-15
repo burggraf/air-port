@@ -111,14 +111,14 @@
 			toast(error, 'danger')
 		} else {
 			await showConfirm({
-			header: 'Project successfully launched!  See: https://${project.domain}.fly.dev/_/',
-			message: `Administrate your project now?`,
+			header: `Project successfully launched!  See: https://${project.domain}.fly.dev/_/`,
+			message: `View  admin page?`,
 			okHandler: async () => {
 				window.open(`https://${project.domain}.fly.dev/_/`, '_blank')
 			},
 		})
 			// open the project in a new windows
-			goto(`/instance/${data}`)
+			// goto(`/instance/${data}`)
 		}
 	}
 	const back = async () => {
@@ -329,10 +329,5 @@
 				</ion-col>
 			</ion-row>
 		</ion-grid>
-		<pre>
-project: {JSON.stringify(project, null, 2)}
-
-project_instance: {JSON.stringify(project_instance, null, 2)}
-</pre>
 	</ion-content>
 </IonPage>
