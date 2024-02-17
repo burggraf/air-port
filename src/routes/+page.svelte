@@ -43,7 +43,7 @@
 			componentProps: {
 				providers: ['google','facebook', 'github'],
 				onSignIn: () => {
-					goto('/projects')
+					goto('/apps')
 				},
 			},
 			showBackdrop: true,
@@ -91,18 +91,18 @@
 					expand="block"
 				>
 					<ion-icon slot="start" icon={allIonicIcons.documentOutline} />
-					Create a project now.
+					Create an app now.
 				</ion-button><br />
 				<ion-button
 					on:click={() => {
-						goto('/projects')
+						goto('/apps')
 					}}
 					color="primary"
 					size="large"
 					expand="block"
 				>
 					<ion-icon slot="start" icon={allIonicIcons.appsOutline} />
-					View your list of projects.
+					View your list of apps.
 				</ion-button><br />
 			{:else}
 				<div class="ion-text-center" style="display: flex; align-items: center; justify-content: center; margin-top: -30px; margin-bottom: 0px;">
@@ -146,10 +146,10 @@
 			<div class="flex-item primary">
 				<h3>Standard Features</h3>
 				<ul>
-					<li>Create & Manage Projects</li>
+					<li>Create & Manage Apps</li>
 					<li>Create & Manage Replicas</li>
 					<li>Full Pocketbase Admin Access</li>
-					<li>Clone Projects (Prod/Staging/Dev)</li>
+					<li>Clone App (Prod/Staging/Dev)</li>
 					<li>Online Management Tools</li>
 				</ul>
 			</div>

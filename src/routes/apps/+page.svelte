@@ -124,7 +124,7 @@
 					<ion-card style="max-width: 400px; display: {app.hidden?'none':'block'};">
 						<ion-card-header style="cursor:pointer;"
 						on:click|stopPropagation={() => {
-							goto(`/app/${app.id}`)
+							goto(`/app/${app.Domain}`)
 						}}
 						>
 							<ion-card-title>{app.title}</ion-card-title>

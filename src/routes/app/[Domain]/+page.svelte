@@ -20,7 +20,7 @@
 	import { currentUser, pb } from '$services/backend.service'
 	import { goto } from '$app/navigation'
 	import { toast } from '$services/toast'
-	export let id = $page.params.id
+	export const Domain = $page.params.Domain
 
 	import { showConfirm } from '$services/alert.service'
 	import { loadingBox } from '$services/loadingMessage'
@@ -34,13 +34,20 @@
 	let form = { title: '', Domain: '', type: '' }
 
 	const ionViewWillEnter = async () => {
+		console.log('ionViewWillEnter...')
 		if (!$currentUser) {
+			console.log('no current user, going to /')
 			goto('/')
 		}
 		localStorage.setItem('page', window.location.pathname)
+		await updateStatus()
+	}
+	const loadData = async () => {
 		let loader = await loadingBox('Loading app info...')
 		try {
-			app = await pb.collection('apps').getOne(id, {})
+			app = await pb.collection('apps').getFirstListItem(`Domain="${Domain}"`, {
+				// expand: 'relField1,relField2.subRelField',
+			});
 			console.log('app', app)
 		} catch (err) {
 			loader.dismiss()
@@ -66,6 +73,20 @@
 		form.title = app.title || ""
 		form.Domain = app.Domain || ""
 		form.type = app.type || ""
+	}
+	const updateStatus = async () => {
+		const loader = await loadingBox('Updating app status...')
+		try {
+			const { data, error } = await pb.send(`/update-app-status/${Domain}`, {
+				method: 'GET',
+			})
+			loader.dismiss()
+			console.log('updateStatus: data, error', data, error)
+		} catch (err) {
+			loader.dismiss()
+			console.log('OOPS: error updating status', err)
+		}
+		loadData();
 	}
 	const back = async () => {
 		goto('/apps')
@@ -161,6 +182,10 @@
 			</ion-buttons>
 			<ion-title>{app?.title || 'App'}</ion-title>
 			<ion-buttons slot="end">
+				<ion-button on:click={updateStatus}>
+					<ion-icon slot="icon-only" icon={allIonicIcons.refreshOutline} />
+				</ion-button>
+
 				<ion-button on:click={actionMenu}>
 					<ion-icon slot="icon-only" icon={allIonicIcons.ellipsisVerticalOutline} />
 				</ion-button>

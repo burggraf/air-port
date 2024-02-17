@@ -1,8 +1,10 @@
 const updateStatus = (Domain, userid) => {
 	const { select, execute } = require(`${__hooks}/modules/sql.js`)
+	const config = require(`${__hooks}/config.json`)
+
 	// get the app status
 	try {
-		cmd = $os.cmd(`fly`,`status`,`--app`,`${Domain}`,`-j`)
+		cmd = $os.cmd(`fly`,`status`,`--app`,`${Domain}`,`-j`, `--access-token`,`${config.FLY_ORG_TOKEN}`)
 		let jsonStatus = String.fromCharCode(...cmd.output());
 	
 		// put the app status into the project table
@@ -34,8 +36,8 @@ const updateStatus = (Domain, userid) => {
 				select({id: ''},
 				`select id from machines where machine_id = '${machine.id}'`);	
 
-				sql = `update machines (
-					set machine_id = '${machine.id || ""}'
+				sql = `update machines 
+					set machine_id = '${machine.id || ""}',
 					name = '${machine.name || ""}', 
 					state = '${machine.state || ""}', 
 					region = '${machine.region || ""}', 
@@ -47,9 +49,9 @@ const updateStatus = (Domain, userid) => {
 					config = '${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}', 
 					events = '${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}', 
 					userid = '${userid || ""}', 
-					Domain = '${Domain || ""}') 
-					where id = '${getMachineRecordData[0].id}'`;
-
+					Domain = '${Domain || ""}'
+					where machine_id = '${machine.id}'`;
+				console.log('update machine', sql)
 				const { data: updateMachineData, error: updateMachineError } = execute( sql );
 				if (updateMachineError) return { data: null, error: updateMachineError };	
 			} catch (err) {
