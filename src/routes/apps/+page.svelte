@@ -138,7 +138,7 @@
 
 						<ion-card-content>
 							<ion-list>
-								{#each getMachinesForApp(app.Domain) as machine}
+								{#each getMachinesForApp(app.Domain || "") as machine}
 									<ion-item
 										style="cursor:pointer;--padding-start:0px;--inner-padding-end: 0px;"
 										lines="full"
