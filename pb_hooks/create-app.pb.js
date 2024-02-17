@@ -1,6 +1,7 @@
 routerAdd('POST', '/create-app', (c) => {
-	console.log('create-app 01')
 	const { execute, select } = require(`${__hooks}/modules/sql.js`)
+	const { updateStatus } = require(`${__hooks}/modules/updateStatus.js`)
+
     const config = require(`${__hooks}/config.json`)
 	const data = $apis.requestInfo(c).data
 	const info = $apis.requestInfo(c)
@@ -17,68 +18,58 @@ routerAdd('POST', '/create-app', (c) => {
 	const type = data?.app?.type || 'production'
 	const owner = data?.app?.owner
 	const primary_region = data?.primary_region
+	console.log('create-app', data)
 	const { data: insertAppData, error: insertAppError } = execute(
 		`INSERT INTO apps (title, Domain, type, userid, primary_region) 
 			VALUES ('${title}', '${Domain}', '${type}', '${userid}', '${primary_region}')`
 	)
 	if (insertAppError) return c.json(200, { data: null, error: insertAppError });
+	console.log('insertAppData', insertAppData)
 
-	// CREATE APP, VOLUME, MACHINE
-	let cmd = $os.cmd(`fly`,`apps`,`create`,`${Domain}`,`--org`,`air-port-dev`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
-	let output = String.fromCharCode(...cmd.output());
-	console.log('app create output', output)
-	cmd = $os.cmd(`fly`,`volumes`,`create`,`pb_data`,`--size=1`,`--app`,`${Domain}`,`--region`,`${primary_region}`,`-y`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
-	output = String.fromCharCode(...cmd.output());
-	console.log('volume create output', output)
-	cmd = $os.cmd(`fly`,`deploy`,`--app`,`${Domain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:latest`,`--region`,`${primary_region}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
-	output = String.fromCharCode(...cmd.output());
-	console.log('machine create output', output)
-
-	// get the app status
-	cmd = $os.cmd(`fly`,`status`,`--app`,`${Domain}`,`-j`)
-	let jsonStatus = String.fromCharCode(...cmd.output());
-
-	// put the app status into the project table
-	jsonStatus = jsonStatus.replace(/'/g, "''");
-	let j;
-	try {
-		j = JSON.parse(jsonStatus)
-	} catch (e) {
-		return c.json(200, { data: null, error: 'JSON parse error' })
+	const deleteAppRecord = (Domain) => {
+		const { data: deleteAppData, error: deleteAppError } = execute(
+			`DELETE FROM apps WHERE Domain = '${Domain}'` 
+		)
+		if (deleteAppError) return c.json(200, { data: null, error: 'Error creating app -- could not abort app creation' });	
 	}
-	let sql = `update apps set 
-		AppURL = '${j.AppURL || ""}',
-		Deployed = '${j.Deployed ? 'true' : 'false'}',
-		Hostname = '${j.Hostname || ""}',
-		Name = '${j.Name || ""}',
-		PlatformVersion = '${j.PlatformVersion || ""}',
-		Status = '${j.Status || ""}',
-		Version = ${j.Version || 1}
-		WHERE Domain = '${Domain}'`;
 
-	const { data: statusData, error: statusError } = execute( sql )
-	if (statusError) return c.json(200, { data: null, error: statusError });
+	// CREATE APP
+	let cmd;
+	let output;
+	try {
+		cmd = $os.cmd(`fly`,`apps`,`create`,`${Domain}`,`--org`,`air-port-dev`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		output = String.fromCharCode(...cmd.output());
+		console.log('app create output', output)	
+	} catch (err) {
+		deleteAppRecord(Domain)
+		return c.json(200, { data: null, error: 'Error creating app' });	
+	}
 
-	// get machine data now
-	const machine = j.Machines[0]
-	sql = `insert into machines (machine_id, name, state, region, 
-		image_ref, instance_id, private_ip, created_at, updated_at, 
-		config, events, userid, Domain) values (`;
-	sql +=	`'${machine.id || ""}',`
-	sql +=	`'${machine.name || ""}',`
-	sql +=	`'${machine.state || ""}',`
-	sql +=	`'${machine.region || ""}',`
-	sql +=	`'${JSON.stringify(machine.image_ref).replace(/\'/g,"''") || ""}',`
-	sql +=	`'${machine.instance_id || ""}',`
-	sql +=	`'${machine.private_ip || ""}',`
-	sql +=	`'${machine.created_at || ""}',`
-	sql +=	`'${machine.updated_at || ""}',`
-	sql +=	`'${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}',`
-	sql +=	`'${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}',`
-	sql +=	`'${userid || ""}',`
-	sql +=	`'${Domain || ""}')`;
-	const { data: insertMachineData, error: insertMachineError } = execute( sql );
-	if (insertMachineError) return c.json(200, { data: null, error: insertMachineError });
+	// CREATE VOLUME
+	try {
+		cmd = $os.cmd(`fly`,`volumes`,`create`,`pb_data`,`--size=1`,`--app`,`${Domain}`,`--region`,`${primary_region}`,`-y`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		output = String.fromCharCode(...cmd.output());
+		console.log('volume create output', output)	
+	} catch (err) {
+		deleteAppRecord(Domain)
+		return c.json(200, { data: null, error: 'Error creating volume' });	
+	}
+
+	// CREATE MACHINE
+	try {
+		cmd = $os.cmd(`fly`,`deploy`,`--app`,`${Domain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:latest`,`--region`,`${primary_region}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		output = String.fromCharCode(...cmd.output());
+		console.log('machine create output', output)	
+	} catch (err) {
+		deleteAppRecord(Domain)
+		return c.json(200, { data: null, error: 'Error creating machine' });
+	}
+
+	// call updateStatus here
+	const { data: updateStatusData, error: updateStatusError} = updateStatus(Domain, userid);
+	if (updateStatusError) {
+		console.log('updateStatusError', updateStatusError)
+	}
 
 	if (output.indexOf('Visit your newly deployed app at') > -1) {
 		return c.json(200, { data: "OK", error: null })
