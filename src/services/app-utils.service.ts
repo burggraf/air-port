@@ -1,8 +1,7 @@
-import type { Project } from '$models/interfaces';
+import type { App } from '$models/interfaces';
 import { pb } from '$services/backend.service';
 export const checkDomainAvailability = async (domain: string) => {
     return true;
-    // const domain = project.domain
     let retval = false
     if (!domain) {
         return retval;

@@ -2,7 +2,7 @@ export interface IObjectKeys {
     [key: string]: string | number | object | undefined
 }
 
-export interface Project extends IObjectKeys {
+export interface App extends IObjectKeys {
     id: string
     name: string
     domain: string

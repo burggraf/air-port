@@ -18,7 +18,7 @@
 		})
 		projects = project_records
 		if (projects.length === 0) {
-			// goto('/newproject')
+			// goto('/new-app')
 		}
 		if ($currentUser && $currentUser.verified === false) {
 			pb.collection('users').subscribe($currentUser.id, function (e) {
@@ -30,8 +30,8 @@
 			});
 		}
 	}
-	const newProject = async () => {
-		goto('/newproject')
+	const newApp = async () => {
+		goto('/new-app')
 	}
 	const getInstancesForProject = (project_id: string) => {
 		return project_instances.filter((instance: any) => {
@@ -69,7 +69,7 @@
 			<ion-title>air-port Projects</ion-title>
 			<ion-buttons slot="end">
 				{#if $currentUser?.verified === true}
-					<ion-button on:click={newProject}>
+					<ion-button on:click={newApp}>
 						<ion-icon slot="icon-only" icon={addOutline} />
 					</ion-button>
 				{/if}
@@ -107,7 +107,7 @@
 				<ion-card-content>
 					Looks like you don't have any projects yet. Click the button below to
 					start a new project.
-					<ion-button expand="block" on:click={newProject}>
+					<ion-button expand="block" on:click={newApp}>
 						<ion-icon slot="icon-only" icon={addOutline} />
 						Create New Project
 					</ion-button>

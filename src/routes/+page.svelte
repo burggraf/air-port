@@ -84,7 +84,7 @@
 				<br />
 				<ion-button
 					on:click={() => {
-						goto('/newproject')
+						goto('/new-app')
 					}}
 					color="secondary"
 					size="large"
