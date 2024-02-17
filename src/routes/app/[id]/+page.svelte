@@ -38,21 +38,27 @@
 			goto('/')
 		}
 		localStorage.setItem('page', window.location.pathname)
+		let loader = await loadingBox('Loading app info...')
 		try {
 			app = await pb.collection('apps').getOne(id, {})
 			console.log('app', app)
 		} catch (err) {
+			loader.dismiss()
 			console.log('error getting app record', err)
 			goto('/apps')
 		}
 		console.log('get machines for app', app.Domain)
 		if (app.Domain) {
+			loader.dismiss()
+			loader = await loadingBox('Loading machine(s) info...')
 			machines = await pb.collection('machines').getFullList({
 				filter: `Domain = '${app.Domain}'`,
 				// sort: 'name,type,site_name,instance_status',
 			})
 			console.log('machines', machines)
+			loader.dismiss()
 		}
+		
 		console.log('setting form values')
 		console.log('app.title', app.title)
 		console.log('app.Domain', app.Domain)
