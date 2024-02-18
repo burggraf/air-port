@@ -1,7 +1,8 @@
-routerAdd('POST', '/create-app', (c) => {
+routerAdd('POST', '/create-app/:version', (c) => {
 	const { execute, select } = require(`${__hooks}/modules/sql.js`)
 	const { updateStatus } = require(`${__hooks}/modules/updateStatus.js`)
     const config = require(`${__hooks}/config.json`)
+	const version = c.pathParam('version') || "latest"
 
 	const data = $apis.requestInfo(c).data
 	const info = $apis.requestInfo(c)
@@ -58,7 +59,7 @@ routerAdd('POST', '/create-app', (c) => {
 
 	// CREATE MACHINE
 	try {
-		cmd = $os.cmd(`fly`,`deploy`,`--app`,`${Domain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:latest`,`--region`,`${primary_region}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		cmd = $os.cmd(`fly`,`deploy`,`--app`,`${Domain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:${version}`,`--region`,`${primary_region}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
 		output = String.fromCharCode(...cmd.output());
 		console.log('machine create output', output)	
 	} catch (err) {

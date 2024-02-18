@@ -10,8 +10,8 @@
 sed "s/\[NODE_ID\]/`printf \"%d\n\" \"0x$FLY_MACHINE_ID\"`/g" /marmot.toml.sample > /marmot1.toml
 sed "s/\[APP_NAME\]/$FLY_APP_NAME/g" /marmot1.toml > /marmot.toml
 
-if [ -f /marmot.toml ]; then
-    /marmot -config /marmot.toml >> /pb/marmot.txt 2>&1 &
+if [ -f /pb/marmot.toml ]; then
+    /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
 fi
 
 mkdir -p /pb/pb_data

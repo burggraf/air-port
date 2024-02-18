@@ -24,6 +24,7 @@
 	import type { AppsRecord } from '$models/pocketbase-types'
 
 	let primary_region = "";
+	let pb_version = "latest"
 	const app: AppsRecord = {
 		AppURL: "",
 		Deployed: false,
@@ -70,7 +71,7 @@
 		const loader = await loadingBox('Creating new app...')
 		console.log('app', app)
 		console.log('primary_region', primary_region)
-		const { data, error } = await pb.send('/create-app', {
+		const { data, error } = await pb.send(`/create-app/${pb_version}`, {
 			method: 'POST',
 			body: {
 				app,
@@ -131,6 +132,25 @@
 			})
 		}
 		const result = await dropdownmenu(e, items)
+	}
+	const versions: string[] = ['latest', '0.21.3', '0.21.2', '0.21.1', '0.21.0']
+	const chooseVersion = async (e: any) => {
+		let items = []
+		for (let i = 0; i < versions.length; i++) {
+			const version = versions[i]
+			items.push({
+				text: version,
+				iconSrc: '/pb.svg', //allIonicIcons.ellipseOutline,
+				color: 'primary',
+				textcolor: 'dark',
+				handler: async () => {},
+			})
+		}
+		const result = await dropdownmenu(e, items)
+		console.log('chooseVersion result', result)
+		if (result?.text) {
+			pb_version = result.text
+		}
 	}
 </script>
 
@@ -281,6 +301,18 @@
 					</ion-item>
 				</ion-col>
 			</ion-row>
+
+			<ion-row>
+				<ion-col>
+					<ion-item>
+						<ion-label slot="start">Pocketbase Version</ion-label>
+						<ion-button slot="end" size="small" expand="block" fill="solid" on:click={chooseVersion}
+							>&nbsp;&nbsp;&nbsp;{pb_version}&nbsp;&nbsp;&nbsp;
+						</ion-button>
+					</ion-item>
+				</ion-col>
+			</ion-row>
+
 
 			<ion-row>
 				<ion-col>
