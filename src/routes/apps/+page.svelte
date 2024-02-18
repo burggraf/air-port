@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import IonPage from '$ionpage'
-	import { addOutline } from 'ionicons/icons'
+	import { addOutline, createOutline, ellipse } from 'ionicons/icons'
 	import { pb, currentUser } from '$services/backend.service'
 	import type { AppsRecord, MachinesRecord } from '$models/pocketbase-types'
 	import { getRegionName, regions } from '$services/region.service'
 	import { toast } from '$services/toast'
+	import { loadingBox } from '$services/loadingMessage'
 
 	let apps: AppsRecord[] = [];
 	let machines: MachinesRecord[] = [];
@@ -14,14 +15,7 @@
 		if (!$currentUser) {
 			goto('/');
 		}
-		machines = await pb.collection('machines').getFullList({
-			// sort: 'name,type,site_name,instance_status',
-		})
-		console.log('machines', machines)
-		apps = await pb.collection('apps').getFullList({
-			sort: 'title',
-		})
-		console.log('apps', apps)
+		loadData();
 		if ($currentUser && $currentUser.verified === false) {
 			pb.collection('users').subscribe($currentUser.id, function (e) {
 				if (e.record?.verified) {
@@ -32,9 +26,41 @@
 			});
 		}
 	}
+	const loadData = async () => {
+		machines = await pb.collection('machines').getFullList({
+			// sort: 'name,type,site_name,instance_status',
+		})
+		console.log('machines', machines)
+		apps = await pb.collection('apps').getFullList({
+			sort: 'title',
+		})
+		console.log('apps', apps)
+	}
 	const newApp = async () => {
 		goto('/new-app')
 	}
+	const updateStatus = async (Domain: string, delay?: number) => {
+		const doUpdateStatus = async () => {
+			const loader = await loadingBox('Updating app status...')
+			try {
+				const { data, error } = await pb.send(`/update-app-status/${Domain}`, {
+					method: 'GET',
+				})
+				loader.dismiss()
+				console.log('updateStatus: data, error', data, error)
+			} catch (err) {
+				loader.dismiss()
+				console.log('OOPS: error updating status', err)
+			}
+			loadData();
+		}
+		if (delay) {
+			setTimeout(doUpdateStatus, delay)
+		} else {
+			doUpdateStatus()
+		}
+	}
+
 	const getMachinesForApp = (domain: string) => {
 		return machines.filter((machine: any) => {
 			return machine.Domain === domain
@@ -137,6 +163,34 @@
 						</ion-card-header>
 
 						<ion-card-content>
+							<ion-grid>
+								<ion-row>
+									<ion-col>
+										<ion-button color="dark" size="small" fill="outline" expand="block" on:click={() => {
+											window.open(`https://${app.Domain}.fly.dev/_/`);updateStatus(app.Domain || "", 2000);
+											}}>
+											Manage
+											<ion-icon slot="end" src="/pb.svg" />
+										</ion-button>
+									</ion-col>
+									<ion-col>
+										<ion-button color="dark" size="small" fill="outline" expand="block" on:click={() => {
+											goto(`/app/${app.Domain}`)
+											}}>
+											Edit
+											<ion-icon slot="end" icon={createOutline} color="dark" />
+										</ion-button>
+									</ion-col>
+									<ion-col>
+										<ion-button color="dark" size="small" fill="outline" expand="block" on:click={() => {
+											window.open(`https://${app.Domain}.fly.dev`);updateStatus(app.Domain || "", 2000);
+											}}>
+											Launch
+											<ion-icon slot="end" src="/launch.svg" />
+										</ion-button>										
+									</ion-col>
+								</ion-row>
+							</ion-grid>
 							<ion-list>
 								{#each getMachinesForApp(app.Domain || "") as machine}
 									<ion-item
@@ -148,39 +202,8 @@
 									>
 										{getRegionName(machine.region || "")}
 
-										<ion-button
-										slot="end"
-										size="small"
-										fill="solid"
-										color={machine.state === 'started' ? 'success' : 'danger'}
-										on:click|stopPropagation={() => {
-											toast('not implemented yet', 'danger')
-											// launch in another windows
-											// window.open(
-											// 	`https://${instance.domain}.${instance.site_domain}/`,
-											// 	'_blank'
-											// )
-										}}
-									>
-										<ion-icon slot="icon-only" src="/launch.svg" />
-									</ion-button>
+										<ion-icon slot="end" icon={ellipse} color={machine.state==='started'?'success':'warning'} />
 
-
-										<ion-button
-											slot="end"
-											size="small"
-											fill="clear"
-											on:click|stopPropagation={() => {
-												// launch in another windows
-												toast('not implemented yet', 'danger')
-												// window.open(
-												// 	`https://${instance.domain}.${instance.site_domain}/_/`,
-												// 	'_blank'
-												// )
-											}}
-										>
-											<ion-icon slot="icon-only" src="/pb.svg" />
-										</ion-button>
 									</ion-item>
 								{/each}
 							</ion-list>

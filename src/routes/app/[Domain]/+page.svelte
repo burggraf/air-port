@@ -370,7 +370,7 @@
 									size="small"
 									fill="solid"
 									color={machine.state === 'stopped'
-										? 'danger'
+										? 'warning'
 										: 'success'}
 									on:click|stopPropagation={() => {
 										// launch in another windows
