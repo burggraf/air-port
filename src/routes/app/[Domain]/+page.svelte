@@ -14,6 +14,7 @@
 		checkmarkOutline,
 		closeCircleOutline,
 		codeDownloadSharp,
+		ellipse,
 		ellipseSharp,
 		syncCircleOutline,
 	} from 'ionicons/icons'
@@ -452,10 +453,69 @@
 						{#each machines as machine}
 							<ion-accordion value="first">
 								<ion-item slot="header" color="light">
-								<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>
+									<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>
+									<ion-icon slot="end" icon={ellipse} color={machine.state==='started'?'success':'warning'} />
 								</ion-item>
 								<div class="ion-padding" slot="content">
-									{machine?.config?.guest?.cpus} {machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest?.memory_mb}mb ram<br/>
+										<ion-item>
+											Config:
+											<ion-text slot="end">
+											{machine?.config?.guest?.cpus} {machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest?.memory_mb}mb ram
+											</ion-text>
+										</ion-item>
+										<ion-item>
+											Pocketbase Version: 
+											<ion-text slot="end">{machine?.image_ref?.tag}</ion-text>
+										</ion-item>
+										<ion-item>
+											State:
+											<ion-text slot="end">{machine?.state}</ion-text>
+										</ion-item>
+										<ion-item>
+											Created:
+											<ion-text slot="end">{machine?.created_at}</ion-text>
+										</ion-item>
+										<ion-item>
+											Updated:
+											<ion-text slot="end">{machine?.updated_at}</ion-text>
+										</ion-item>
+										<ion-item-divider>
+											<ion-label>Events</ion-label>
+										</ion-item-divider>
+										<!-- <ion-item> -->
+											<ion-grid style="width: 100%;">
+											<ion-row style="width: 100%; font-weight: bold;">
+												<ion-col>
+													<ion-label>Src</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>Status</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>Type</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>Timestamp</ion-label>
+												</ion-col>
+											</ion-row>
+											{#each machine?.events as event}
+											<ion-row style="width: 100%;">
+												<ion-col>
+													<ion-label>{event?.source}</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>{event?.status}</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>{event?.type}</ion-label>
+												</ion-col>
+												<ion-col>
+													<ion-label>{@html new Date((event?.timestamp || 0)).toLocaleString().replace(',','<br/>')}</ion-label>
+												</ion-col>
+											</ion-row>	
+											{/each}
+											</ion-grid>
+										<!-- </ion-item>								 -->
 								</div>
 							</ion-accordion>
 						  {/each}
