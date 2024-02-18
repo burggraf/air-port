@@ -67,7 +67,7 @@ routerAdd('POST', '/create-app', (c) => {
 	}
 
 	// call updateStatus here
-	const { data: updateStatusData, error: updateStatusError} = updateStatus(Domain, userid);
+	const { data: updateStatusData, error: updateStatusError} = updateStatus(Domain, userid, true);
 	if (updateStatusError) {
 		console.log('updateStatusError', updateStatusError)
 	}

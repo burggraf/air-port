@@ -1,4 +1,4 @@
-const updateStatus = (Domain, userid) => {
+const updateStatus = (Domain, userid, is_primary=false) => {
 	const { select, execute } = require(`${__hooks}/modules/sql.js`)
 	const config = require(`${__hooks}/config.json`)
 
@@ -43,7 +43,7 @@ const updateStatus = (Domain, userid) => {
 					// machine record does not exist -- create it
 					sql = `insert into machines (machine_id, name, state, region, 
 						image_ref, instance_id, private_ip, created_at, updated_at, 
-						config, events, userid, Domain) values (
+						config, events, userid, Domain, is_primary) values (
 						'${machine.id || ""}',
 						'${machine.name || ""}',
 						'${machine.state || ""}',
@@ -56,7 +56,7 @@ const updateStatus = (Domain, userid) => {
 						'${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}',
 						'${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}',
 						'${userid || ""}',
-						'${Domain || ""}')`;
+						'${Domain || ""}', ${is_primary ? 'true' : 'false'})`;
 					const { data: insertMachineData, error: insertMachineError } = execute( sql );
 					if (insertMachineError) return { data: null, error: insertMachineError };	
 				} else {
