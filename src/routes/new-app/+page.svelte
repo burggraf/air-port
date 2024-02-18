@@ -81,18 +81,16 @@
 			toast(error, 'danger')
 		} else {
 			await showConfirm({
-			header: `Project successfully launched!  See: https://${app.Domain}.fly.dev/_/`,
-			message: `View  admin page?`,
-			okHandler: async () => {
-				window.open(`https://${app.Domain}.fly.dev/_/`, '_blank')
-			},
-		})
-			// open the project in a new windows
-			// goto(`/instance/${data}`)
+				header: `App successfully launched!  See: https://${app.Domain}.fly.dev/_/`,
+				message: `View admin page?`,
+				okHandler: async () => {
+					window.open(`https://${app.Domain}.fly.dev/_/`, '_blank')
+				},
+			})
 		}
 	}
 	const back = async () => {
-		goto('/projects')
+		goto('/apps')
 	}
 	$: domainAvailable = true
 	const refreshSlug = () => {
@@ -106,16 +104,6 @@
 		if (field === 'Domain') {
 			app[field] = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
 			domainAvailable = await checkDomainAvailability(app.Domain || "")
-			// project_instance.domain = value
-			// if (!project_instance.metadata) project_instance.metadata = {}
-			// project_instance.metadata.fqd = `${project.domain}.azabab.com`
-		// } else if (field === 'title' && project?.id !== '') {
-		// 	project[field] = value
-		// 	try {
-		// 		const result = await pb.collection('projects').update(project?.id, { name: value })
-		// 	} catch (err) {
-		// 		console.error('error updating project name', err)
-		// 	}
 		} else {
 			app[field] = value
 		}
