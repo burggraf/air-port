@@ -358,97 +358,13 @@
 					</ion-item>
 				</ion-col>
 			</ion-row>
-
-			<!-- <ion-row>
-				<ion-col>
-					<ion-item>
-						<ion-label slot="start">Pocketbase Version</ion-label>
-						<ion-button slot="end" size="small" expand="block" fill="solid" on:click={changeVersion}
-							>&nbsp;&nbsp;&nbsp;{project.metadata?.pb_version || default_version}&nbsp;&nbsp;&nbsp;
-						</ion-button>
-					</ion-item>
-				</ion-col>
-			</ion-row> -->
-
 			<ion-row>
 				<ion-col>
+					<ion-label>Regions</ion-label>
+				</ion-col>
+			</ion-row>
+			<ion-row><ion-col>
 					<ion-list>
-						<ion-item-divider>
-							<ion-label>Machines</ion-label>
-						</ion-item-divider>
-						{#each machines as machine}
-							<ion-item
-								style="cursor:pointer;--padding-start:0px;--inner-padding-end: 0px;"
-								lines="full"
-								on:click={() => {
-									// goto(`/instance/${instance.id}`)
-									toast('not implemented yet', 'danger')
-								}}
-							>
-								<!-- <ion-button slot="start" size="small" fill="clear">
-									<ion-icon
-										slot="icon-only"
-										color={instance.instance_status === 'online'
-											? 'success'
-											: instance.instance_status === 'offline'
-											? 'danger'
-											: 'warning'}
-										icon={ellipseSharp}
-									/>
-								</ion-button> -->
-
-								{machine.region} : {getRegionName(machine.region || "")}
-
-								<ion-button
-									slot="end"
-									size="small"
-									fill="solid"
-									color={machine.state === 'stopped'
-										? 'warning'
-										: 'success'}
-									on:click|stopPropagation={() => {
-										// launch in another windows
-										toast('not implemented yet', 'danger')
-										//window.open(`https://${instance.domain}.${instance.site_domain}/`, '_blank')
-									}}
-								>
-									<ion-icon slot="icon-only" src="/launch.svg" />
-								</ion-button>
-
-								<ion-button
-									slot="end"
-									size="small"
-									fill="clear"
-									on:click|stopPropagation={() => {
-										// launch in another windows
-										toast('not implemented yet', 'danger')
-										//window.open(`https://${instance.domain}.${instance.site_domain}/_/`, '_blank')
-									}}
-								>
-									<ion-icon slot="icon-only" src="/pb.svg" />
-								</ion-button>
-
-								<!-- <ion-button
-                                        slot="end"
-                                        size="small"
-                                        fill="outline"
-                                        on:click|stopPropagation={() => {
-                                            goto(`/instance/${instance.id}`)
-                                        }}
-                                    >
-                                        <ion-icon slot="icon-only" icon={arrowForwardOutline} />
-                                    </ion-button> -->
-							</ion-item>
-						{/each}
-						<ion-item>
-							<div style="width:100%;text-align:center;">
-								<ion-button size="small" expand="block" on:click={createNewMachine}>
-									<ion-icon slot="icon-only" icon={addOutline} />
-									&nbsp;New Machine
-								</ion-button>
-							</div>
-						</ion-item>
-					</ion-list>
 					<ion-accordion-group>
 						{#each machines as machine}
 							<ion-accordion value="first">
@@ -520,8 +436,17 @@
 							</ion-accordion>
 						  {/each}
 					  </ion-accordion-group>
-				</ion-col>
-			</ion-row></ion-grid
-		>
+				<!-- </ion-col>
+			</ion-row></ion-grid> -->
+			</ion-list>
+			<ion-item>
+				<div style="width:100%;text-align:center;">
+					<ion-button size="small" expand="block" on:click={createNewMachine}>
+						<ion-icon slot="icon-only" icon={addOutline} />
+						&nbsp;Add New Region
+					</ion-button>
+				</div>
+			</ion-item>
+			</ion-col></ion-row></ion-grid>
 	</ion-content>
 </IonPage>
