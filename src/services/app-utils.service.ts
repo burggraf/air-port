@@ -1,7 +1,6 @@
-import type { App } from '$models/interfaces';
+//import type { App } from '$models/interfaces';
 import { pb } from '$services/backend.service';
 export const checkDomainAvailability = async (domain: string) => {
-    return true;
     let retval = false
     if (!domain) {
         return retval;
@@ -10,11 +9,12 @@ export const checkDomainAvailability = async (domain: string) => {
         const { data, error } = await pb.send(`/check-domain/${domain}`, {
 			method: 'GET',
 		})
+        console.log('/check-domain', data, error)
         if (error) {
             console.error('ERROR checking domain ' + domain, error)
             return false;
         } else {
-            if (data === 0)
+            if (data === 'available')
                 retval = true;
             else
                 retval = false;

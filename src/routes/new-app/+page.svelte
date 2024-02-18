@@ -48,6 +48,7 @@
 		if (!$currentUser) {
 			goto('/')
 		}
+		refreshSlug();
 	}
 	const save = async () => {
 		const domainAvailable = await checkDomainAvailability(app.Domain || "")
@@ -78,7 +79,11 @@
 		})
 		loader.dismiss()
 		if (error) {
-			toast(error, 'danger')
+			if (error === "Error creating app") {
+				toast('Subdomain not available -- try another', 'danger')
+			} else {
+				toast(error, 'danger')
+			}
 		} else {
 			await showConfirm({
 				header: `App successfully launched!  See: https://${app.Domain}.fly.dev/_/`,
@@ -93,8 +98,10 @@
 		goto('/apps')
 	}
 	$: domainAvailable = true
-	const refreshSlug = () => {
+	const refreshSlug = async () => {
 		app.Domain = wordSlug(3)
+		domainAvailable = await checkDomainAvailability(app.Domain || "")
+		console.log('***-> domainAvailable', domainAvailable)
 	}
 
 	const handleChange = async (event: any) => {
@@ -104,6 +111,7 @@
 		if (field === 'Domain') {
 			app[field] = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
 			domainAvailable = await checkDomainAvailability(app.Domain || "")
+			console.log('*** domainAvailable', domainAvailable)
 		} else {
 			app[field] = value
 		}
@@ -222,7 +230,7 @@
 				</ion-col>
 			</ion-row>
 
-			{#if app?.id === '' && app.Domain && app.Domain.trim().length > 0}
+			{#if app.Domain && app.Domain.trim().length > 0}
 				<ion-row>
 					<ion-col>
 						<ion-label color={domainAvailable ? 'success' : 'danger'} style="padding-left: 20px;">

@@ -18,7 +18,7 @@ routerAdd('POST', '/create-app', (c) => {
 	const type = data?.app?.type || 'production'
 	const owner = data?.app?.owner
 	const primary_region = data?.primary_region
-	console.log('create-app', data)
+	console.log('create-app', JSON.stringify(data))
 	const { data: insertAppData, error: insertAppError } = execute(
 		`INSERT INTO apps (title, Domain, type, userid, primary_region) 
 			VALUES ('${title}', '${Domain}', '${type}', '${userid}', '${primary_region}')`
@@ -41,6 +41,7 @@ routerAdd('POST', '/create-app', (c) => {
 		output = String.fromCharCode(...cmd.output());
 		console.log('app create output', output)	
 	} catch (err) {
+		console.log('app create error -- domain probably exists', err)
 		deleteAppRecord(Domain)
 		return c.json(200, { data: null, error: 'Error creating app' });	
 	}
