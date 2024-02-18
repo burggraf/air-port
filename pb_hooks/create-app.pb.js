@@ -1,8 +1,8 @@
 routerAdd('POST', '/create-app', (c) => {
 	const { execute, select } = require(`${__hooks}/modules/sql.js`)
 	const { updateStatus } = require(`${__hooks}/modules/updateStatus.js`)
-
     const config = require(`${__hooks}/config.json`)
+
 	const data = $apis.requestInfo(c).data
 	const info = $apis.requestInfo(c)
 	const user = info.authRecord // empty if not authenticated as regular auth record

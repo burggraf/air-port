@@ -32,11 +32,35 @@ const updateStatus = (Domain, userid) => {
 		for (let i = 0; i < j.Machines.length; i++) {
 			const machine = j.Machines[i]
 			try {
+				console.log(`select id from machines where machine_id = '${machine.id}'`)
 				const { data: getMachineRecordData, error: getMachineRecordError } = 
 				select({id: ''},
 				`select id from machines where machine_id = '${machine.id}'`);	
+				console.log('getMachineRecordData, getMachineRecordError', 
+					JSON.stringify(getMachineRecordData), JSON.stringify(getMachineRecordError));
 
-				sql = `update machines 
+				if (!getMachineRecordData || getMachineRecordData.length === 0) { 
+					// machine record does not exist -- create it
+					sql = `insert into machines (machine_id, name, state, region, 
+						image_ref, instance_id, private_ip, created_at, updated_at, 
+						config, events, userid, Domain) values (
+						'${machine.id || ""}',
+						'${machine.name || ""}',
+						'${machine.state || ""}',
+						'${machine.region || ""}',
+						'${JSON.stringify(machine.image_ref).replace(/\'/g,"''") || ""}',
+						'${machine.instance_id || ""}',
+						'${machine.private_ip || ""}',
+						'${machine.created_at || ""}',
+						'${machine.updated_at || ""}',
+						'${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}',
+						'${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}',
+						'${userid || ""}',
+						'${Domain || ""}')`;
+					const { data: insertMachineData, error: insertMachineError } = execute( sql );
+					if (insertMachineError) return { data: null, error: insertMachineError };	
+				} else {
+					sql = `update machines 
 					set machine_id = '${machine.id || ""}',
 					name = '${machine.name || ""}', 
 					state = '${machine.state || ""}', 
@@ -51,29 +75,12 @@ const updateStatus = (Domain, userid) => {
 					userid = '${userid || ""}', 
 					Domain = '${Domain || ""}'
 					where machine_id = '${machine.id}'`;
-				console.log('update machine', sql)
-				const { data: updateMachineData, error: updateMachineError } = execute( sql );
-				if (updateMachineError) return { data: null, error: updateMachineError };	
+					console.log('update machine', sql)
+					const { data: updateMachineData, error: updateMachineError } = execute( sql );
+					if (updateMachineError) return { data: null, error: updateMachineError };	
+				}	
 			} catch (err) {
-				// machine record does not exist -- create it
-				sql = `insert into machines (machine_id, name, state, region, 
-					image_ref, instance_id, private_ip, created_at, updated_at, 
-					config, events, userid, Domain) values (
-					'${machine.id || ""}',
-					'${machine.name || ""}',
-					'${machine.state || ""}',
-					'${machine.region || ""}',
-					'${JSON.stringify(machine.image_ref).replace(/\'/g,"''") || ""}',
-					'${machine.instance_id || ""}',
-					'${machine.private_ip || ""}',
-					'${machine.created_at || ""}',
-					'${machine.updated_at || ""}',
-					'${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}',
-					'${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}',
-					'${userid || ""}',
-					'${Domain || ""}')`;
-				const { data: insertMachineData, error: insertMachineError } = execute( sql );
-				if (insertMachineError) return { data: null, error: insertMachineError };	
+				return { data: null, error: err };
 			}
 		}
 		return { data: 'OK', error: null };

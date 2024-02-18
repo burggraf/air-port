@@ -54,10 +54,10 @@ export type AppsRecord = IObjectKeys & {
 }
 
 export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = unknown> = IObjectKeys & {
-	config?: null | Tconfig
+	config?: any // null | Tconfig
 	created_at?: IsoDateString
-	events?: null | Tevents
-	image_ref?: null | Timage_ref
+	events?: any // null | Tevents
+	image_ref?: any // null | Timage_ref
 	instance_id?: string
 	machine_id?: string
 	name?: string

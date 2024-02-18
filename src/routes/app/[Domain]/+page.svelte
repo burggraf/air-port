@@ -122,6 +122,30 @@
 		// 	},
 		// })
 	}
+	const removeApp = async () => {
+		await showConfirm({
+			header: 'Delete App',
+			message: `Are you SURE?  This cannot be undone.`,
+			okHandler: async () => {
+				const loader = await loadingBox('Deleting app...')
+				const { data, error } = await pb.send('/remove-app', {
+					method: 'POST',
+					body: {
+						Domain
+					},
+				})
+				loader.dismiss()
+				if (error) {
+					toast('Error: ' + JSON.stringify(error), 'danger')
+				} else {
+					toast('App deleted', 'success')
+					goto('/apps')
+				}
+			},
+		})
+	}
+
+
 	const changeVersion = async (e: any) => {
 		toast('This feature is not ready yet', 'danger')
 	}
@@ -159,6 +183,15 @@
 				icon: allIonicIcons.syncOutline,
 				handler: () => {
 					resync()
+				},
+			},
+			{
+				text: 'Delete App',
+				icon: allIonicIcons.trashOutline,
+				textcolor: 'danger',
+				color: 'danger',
+				handler: () => {
+					removeApp()
 				},
 			},
 			{
@@ -415,6 +448,18 @@
 							</div>
 						</ion-item>
 					</ion-list>
+					<ion-accordion-group>
+						{#each machines as machine}
+							<ion-accordion value="first">
+								<ion-item slot="header" color="light">
+								<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>
+								</ion-item>
+								<div class="ion-padding" slot="content">
+									{machine?.config?.guest?.cpus} {machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest?.memory_mb}mb ram<br/>
+								</div>
+							</ion-accordion>
+						  {/each}
+					  </ion-accordion-group>
 				</ion-col>
 			</ion-row></ion-grid
 		>

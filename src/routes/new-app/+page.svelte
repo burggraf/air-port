@@ -21,7 +21,7 @@
 	import { loadingBox } from '$services/loadingMessage'
 	import { getRegionName, regions } from '$services/region.service'
 	import { showConfirm } from '$services/alert.service'
-	import type { AppsRecord, MachinesRecord, IObjectKeys } from '$models/pocketbase-types'
+	import type { AppsRecord } from '$models/pocketbase-types'
 
 	let primary_region = "";
 	const app: AppsRecord = {
