@@ -1,4 +1,5 @@
 <script lang="ts">
+	const versions: string[] = ['0.21.3', '0.21.2', '0.21.1', '0.21.0']
 	import '$styles/grid-styles.css'
 	//@ts-ignore
 	import * as wordSlug from 'word-slug'
@@ -24,7 +25,7 @@
 	import type { AppsRecord } from '$models/pocketbase-types'
 
 	let primary_region = "";
-	let pb_version = "latest"
+	let pb_version = versions[0]
 	const app: AppsRecord = {
 		AppURL: "",
 		Deployed: false,
@@ -93,6 +94,7 @@
 					window.open(`https://${app.Domain}.fly.dev/_/`, '_blank')
 				},
 			})
+			goto(`/app/${app.Domain}`)
 		}
 	}
 	const back = async () => {
@@ -133,7 +135,6 @@
 		}
 		const result = await dropdownmenu(e, items)
 	}
-	const versions: string[] = ['latest', '0.21.3', '0.21.2', '0.21.1', '0.21.0']
 	const chooseVersion = async (e: any) => {
 		let items = []
 		for (let i = 0; i < versions.length; i++) {
