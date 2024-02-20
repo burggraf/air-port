@@ -18,6 +18,6 @@ COPY ./marmot.toml.sample .
 RUN mkdir -p /pb/.ssh
 COPY ./sshd_config /etc/ssh/sshd_config
 
-EXPOSE 8080 4222 5222 6222 7222 8222
+EXPOSE 8080 2222 4222 5222 6222 7222 8222
 
 CMD "./start.sh"
