@@ -1,5 +1,5 @@
 FROM alpine:latest
-ARG PB_VERSION=0.21.1
+ARG PB_VERSION=0.21.3
 RUN apk update && apk add --no-cache \
     unzip \
     ca-certificates \
@@ -21,6 +21,6 @@ COPY ./marmot.toml.sample .
 RUN mkdir -p /pb/.ssh
 COPY ./sshd_config /etc/ssh/sshd_config
 
-EXPOSE 8080 4222 5222 6222 7222 8222
+EXPOSE 8080 2222 4222 5222 6222 7222 8222
 
 CMD "./start.sh"
