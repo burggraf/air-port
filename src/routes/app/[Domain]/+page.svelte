@@ -4,7 +4,7 @@
 	import { page } from '$app/stores'
 	import * as allIonicIcons from 'ionicons/icons'
 	import type { AppsRecord, MachinesRecord } from '$models/pocketbase-types'
-	import { getRegionName, regions } from '$services/region.service'
+	import { chooseRegion, getRegionName } from '$services/region.service'
 
 	import {
 		addOutline,
@@ -96,8 +96,30 @@
 	const handleChange = async (event: any) => {
 		form[event.target.id as keyof typeof form] = event.target.value
 	}
-	const createNewMachine = async () => {
-		toast('This feature is not ready yet', 'danger')
+	const addNewRegion = async (e: any) => {
+		// const loader = await loadingBox('Adding new region...')
+		const region: any = await chooseRegion(e)
+		if (region) {
+			await showConfirm({
+				header: 'Add New Region',
+				message: `This will create a new app instance in ${getRegionName(region)}.  Are you SURE?`,
+				okHandler: async () => {
+					const loader = await loadingBox(`Creating new app instance in ${getRegionName(region)}...`)
+					loader.present()
+					const { data, error } = await pb.send(`/add-region/${Domain}/${region}`, {
+						method: 'GET',
+					})
+					console.log('add-region data, error', data, error)
+					loader.dismiss()
+					if (error) {
+						toast('Error: ' + JSON.stringify(error), 'danger')
+					} else {
+						await updateStatus()
+						toast('New region added', 'success') 
+					}
+				},
+			})
+		}
 	}
 	const resync = async () => {
 		toast('This feature is not ready yet', 'danger')
@@ -441,7 +463,7 @@
 			</ion-list>
 			<ion-item>
 				<div style="width:100%;text-align:center;">
-					<ion-button size="small" expand="block" on:click={createNewMachine}>
+					<ion-button size="small" expand="block" on:click={addNewRegion}>
 						<ion-icon slot="icon-only" icon={addOutline} />
 						&nbsp;Add New Region
 					</ion-button>

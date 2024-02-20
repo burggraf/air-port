@@ -28,6 +28,13 @@ primary_region = 'sjc'
     hard_limit = 550
     soft_limit = 500
 
+[[services]]
+  internal_port = 2222
+  protocol = "tcp"
+
+[[services.ports]]
+  port = 2222  # or another port if you prefer not to use 22 externally
+
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1

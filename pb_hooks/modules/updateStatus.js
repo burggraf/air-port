@@ -36,8 +36,8 @@ const updateStatus = (Domain, userid, is_primary=false) => {
 				const { data: getMachineRecordData, error: getMachineRecordError } = 
 				select({id: ''},
 				`select id from machines where machine_id = '${machine.id}'`);	
-				console.log('getMachineRecordData, getMachineRecordError', 
-					JSON.stringify(getMachineRecordData), JSON.stringify(getMachineRecordError));
+				//console.log('getMachineRecordData, getMachineRecordError', 
+				//	JSON.stringify(getMachineRecordData), JSON.stringify(getMachineRecordError));
 
 				if (!getMachineRecordData || getMachineRecordData.length === 0) { 
 					// machine record does not exist -- create it
@@ -75,7 +75,7 @@ const updateStatus = (Domain, userid, is_primary=false) => {
 					userid = '${userid || ""}', 
 					Domain = '${Domain || ""}'
 					where machine_id = '${machine.id}'`;
-					console.log('update machine', sql)
+					// console.log('update machine', sql)
 					const { data: updateMachineData, error: updateMachineError } = execute( sql );
 					if (updateMachineError) return { data: null, error: updateMachineError };	
 				}	

@@ -23,6 +23,7 @@
 	import { getRegionName, regions } from '$services/region.service'
 	import { showConfirm } from '$services/alert.service'
 	import type { AppsRecord } from '$models/pocketbase-types'
+	import { chooseRegion } from '$services/region.service'
 
 	let primary_region = "";
 	let pb_version = versions[0]
@@ -119,21 +120,11 @@
 			app[field] = value
 		}
 	}
-	const chooseRegion = async (e: any) => {
-		let items = []
-		for (let i = 0; i < regions.length; i++) {
-			const region = regions[i]
-			items.push({
-				text: region.name,
-				icon: allIonicIcons.globeOutline,
-				color: 'primary',
-				textcolor: 'primary',
-				handler: async () => {
-					primary_region = region.code
-				},
-			})
+	const selectRegion = async (e: any) => {
+		const result: any = await chooseRegion(e)
+		if (result) {
+			primary_region = result
 		}
-		const result = await dropdownmenu(e, items)
 	}
 	const chooseVersion = async (e: any) => {
 		let items = []
@@ -275,7 +266,7 @@
             </ion-row> -->
 			<ion-row>
 				<ion-col>
-					<ion-button size="small" color="secondary" expand="block" on:click={chooseRegion}
+					<ion-button size="small" color="secondary" expand="block" on:click={selectRegion}
 						>{getRegionName(primary_region) || 'Select region'}</ion-button
 					>
 				</ion-col>

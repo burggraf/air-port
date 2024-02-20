@@ -1,3 +1,6 @@
+import * as allIonicIcons from 'ionicons/icons'
+import { dropdownmenu } from '$components/DropdownMenu'
+
 export const regions = [{"code": "ams", "name": "Amsterdam, Netherlands"},
 {"code": "iad", "name": "Ashburn, Virginia (US)"},
 {"code": "atl", "name": "Atlanta, Georgia (US)"},
@@ -39,3 +42,22 @@ export const getRegionName = (code: string) => {
     return region ? region.name : code;
 }
 
+export const chooseRegion = async (e: any) => {
+    let items = []
+    for (let i = 0; i < regions.length; i++) {
+        const region = regions[i]
+        items.push({
+            text: region.name,
+            code: region.code,
+            icon: allIonicIcons.globeOutline,
+            color: 'primary',
+            textcolor: 'primary',
+            handler: async () => {
+                return region
+            },
+        })
+    }
+    const result = await dropdownmenu(e, items)
+    console.log('**** result', result)
+    return result.code;
+}

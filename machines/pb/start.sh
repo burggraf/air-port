@@ -9,8 +9,8 @@
 
 sed "s/\[NODE_ID\]/`printf \"%d\n\" \"0x$FLY_MACHINE_ID\"`/g" /marmot.toml.sample > /marmot1.toml
 sed "s/\[APP_NAME\]/$FLY_APP_NAME/g" /marmot1.toml > /marmot.toml
-
 if [ -f /pb/marmot.toml ]; then
+    cp /marmot.toml /pb/marmot.toml
     /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
 fi
 
@@ -18,8 +18,10 @@ mkdir -p /pb/pb_data
 mkdir -p /pb/pb_hooks
 mkdir -p /pb/pb_migrations
 mkdir -p /pb/pb_public
-mkdir -p /pb/st
-/usr/sbin/sshd -p 2222
+
+/server & # runs on port 2222
+
+#/usr/sbin/sshd 
 wait -n
 exit $?
 # ssh -p 2222 -i /pb/.ssh/id_rsa root@<ipv6>
