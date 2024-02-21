@@ -10,6 +10,7 @@
 
 [env]
   SSH_CONFIG_DIR = '/pb/.ssh'
+  SERVER_KEY = 'dc4d3d31-4eae-4b23-8d0f-1c24f31c0953'
 
 [[mounts]]
   source = 'pb_data'

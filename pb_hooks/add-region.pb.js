@@ -116,7 +116,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 				body: '', // eg. JSON.stringify({"test": 123})
 				headers: {
 					'content-type': 'application/json',
-					Authorization: 'Bearer cf8fd362-0a33-46e0-9150-e6cbe989dade',
+					Authorization: 'Bearer ' + $os.getenv('SERVER_KEY'),
 				},
 				timeout: 30, // in seconds
 			})

@@ -3,21 +3,31 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 )
 
 const (
-	port              = ":2222"
-	authHeader        = "Authorization"
-	expectedAuthToken = "Bearer cf8fd362-0a33-46e0-9150-e6cbe989dade"
+	port       = ":2222"
+	authHeader = "Authorization"
 )
+
+var SERVER_KEY string
 
 // ScriptPayload struct to match JSON payload for dynamic script execution
 type ScriptPayload struct {
 	Script string `json:"script"`
 }
 
+func LoadConfiguration() {
+	SERVER_KEY := "Bearer " + os.Getenv("SERVER_KEY")
+	if SERVER_KEY == "Bearer " {
+		fmt.Println("Error: SERVER_KEY environment variable is not set.")
+		return
+	}
+}
 func main() {
+	LoadConfiguration()
 	http.HandleFunc("/", authenticateRequest(methodCheck(http.MethodPost, baseHandler)))
 	http.HandleFunc("/enable-replication", authenticateRequest(methodCheck(http.MethodPost, enableReplicationHandler)))
 	http.HandleFunc("/disable-replication", authenticateRequest(methodCheck(http.MethodPost, disableReplicationHandler)))
@@ -73,7 +83,7 @@ func executeScript(script string) (string, error) {
 func authenticateRequest(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authToken := r.Header.Get(authHeader)
-		if authToken != expectedAuthToken {
+		if authToken != SERVER_KEY {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
