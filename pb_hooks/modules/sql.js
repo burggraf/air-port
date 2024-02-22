@@ -28,4 +28,21 @@ const execute = (sqlText) => {
 	}
 
 }
-module.exports = { select, execute };
+const executeReturning = (fieldsObj, sqlText) => {
+	try {
+		const retarr = arrayOf(
+			new DynamicModel(fieldsObj)
+		)
+		$app
+			.dao()
+			.db()
+			.newQuery(sqlText)
+			.all(retarr) // throw an error on db failure
+		return { data: retarr, error: null };
+	} catch (err) {
+		return { data: null, error: err?.value?.error() || err };
+	}
+
+}
+
+module.exports = { select, execute, executeReturning };
