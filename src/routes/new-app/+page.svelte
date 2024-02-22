@@ -55,6 +55,7 @@
 	}
 	const save = async () => {
 		const domainAvailable = await checkDomainAvailability(app.Domain || "")
+		console.log('domainAvailable', domainAvailable)
 		if (!app.title || app?.title?.trim().length === 0) {
 			toast('App title is required', 'danger')
 			return

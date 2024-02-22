@@ -39,6 +39,10 @@ routerAdd('POST', '/create-app/:version', (c) => {
 	let output;
 	try {
 		cmd = $os.cmd(`fly`,`apps`,`create`,`${Domain}`,`--org`,`air-port-dev`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		console.log('create app cmd:')
+		console.log('*****************************')
+		console.log(cmd)
+		console.log('*****************************')
 		output = String.fromCharCode(...cmd.output());
 		console.log('app create output', output)	
 	} catch (err) {
@@ -47,6 +51,7 @@ routerAdd('POST', '/create-app/:version', (c) => {
 		return c.json(200, { data: null, error: 'Error creating app' });	
 	}
 
+	console.log('CREATE VOLUME')
 	// CREATE VOLUME
 	try {
 		cmd = $os.cmd(`fly`,`volumes`,`create`,`pb_data`,`--size=1`,`--app`,`${Domain}`,`--region`,`${primary_region}`,`-y`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
@@ -59,7 +64,18 @@ routerAdd('POST', '/create-app/:version', (c) => {
 
 	// CREATE MACHINE
 	try {
-		cmd = $os.cmd(`fly`,`deploy`,`--app`,`${Domain}`,`--config`,`${__hooks}/fly.toml`,`--image`,`registry.fly.io/air-port-dev:${version}`,`--region`,`${primary_region}`,`--now`,`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		cmd = $os.cmd(`fly`,`deploy`,
+			`--app`,`${Domain}`,
+			`--config`,`${__hooks}/fly.toml`,
+			`--image`,`registry.fly.io/air-port-dev:${version}`,
+			`--region`,`${primary_region}`,
+			`--now`,
+			`--env`,`AUTHORIZED_KEYS=${config.AUTHORIZED_KEYS}`,
+			`--access-token`,`${config.FLY_ORG_TOKEN}`)
+		console.log('create machine cmd:')
+		console.log('*****************************')
+		console.log(cmd)
+		console.log('*****************************')
 		output = String.fromCharCode(...cmd.output());
 		console.log('machine create output', output)	
 	} catch (err) {

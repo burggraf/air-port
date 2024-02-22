@@ -19,9 +19,9 @@ Port 2222
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /pb/.ssh/ssh_host_rsa_key
+HostKey /pb/.ssh/ssh_host_ecdsa_key
+HostKey /pb/.ssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -43,7 +43,6 @@ Port 2222
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile	/pb/.ssh/authorized_keys
-HostKey /pb/.ssh/id_rsa
 
 #AuthorizedPrincipalsFile none
 
@@ -120,3 +119,4 @@ Subsystem	sftp	internal-sftp
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
+

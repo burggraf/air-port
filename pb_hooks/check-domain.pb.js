@@ -17,7 +17,7 @@ routerAdd('GET', '/check-domain/:Domain', (c) => {
 
 	// throws on timeout or network connectivity error
 	try {
-		console.log('checkign domain with api.machines.dev')
+		console.log('checking domain with api.machines.dev')
 		const res = $http.send({
 			url:     `https://api.machines.dev/v1/apps/${Domain}`,
 			method:  "GET",
@@ -27,7 +27,7 @@ routerAdd('GET', '/check-domain/:Domain', (c) => {
 			timeout: 20, // in seconds
 		})
 
-		console.log('domain check:', Domain, JSON.stringify(res?.json))
+		// console.log('domain check:', Domain, JSON.stringify(res?.json))
 		// console.log(res.headers)    // the response headers (eg. res.headers['X-Custom'][0])
 		// console.log(res.cookies)    // the response cookies (eg. res.cookies.sessionId.value)
 		// console.log(res.statusCode) // the response HTTP status code
