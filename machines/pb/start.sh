@@ -21,7 +21,7 @@ if [ ! -f /pb/.ssh/ssh_host_rsa_key ]; then
     cp /etc/ssh/* /pb/.ssh
 fi
 if [ ! -f /pb/.ssh/authorized_keys ]; then
-    echo "$AUTHORIZED_KEYS" > /pb/.ssh/authorized_keys
+    echo -e "$AUTHORIZED_KEYS" > /pb/.ssh/authorized_keys
 fi
 
 /usr/sbin/sshd -f /pb/.ssh/sshd_config

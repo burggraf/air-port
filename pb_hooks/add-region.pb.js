@@ -34,40 +34,6 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 	// get primary machine
 	const primaryMachine = machineData.filter((m) => m.is_primary === true)[0]
 	console.log('add-region 02b')
-	/*
-	const xxx = {
-		env: { FLY_PROCESS_GROUP: 'app', PRIMARY_REGION: 'sjc', SSH_CONFIG_DIR: '/pb/.ssh' },
-		guest: { cpu_kind: 'shared', cpus: 1, memory_mb: 256 },
-		image: 'registry.fly.io/air-port-dev:0.21.3',
-		init: {},
-		metadata: {
-			fly_flyctl_version: '0.2.9',
-			fly_platform_version: 'v2',
-			fly_process_group: 'app',
-			fly_release_id: 'gBVgYpo0096V8HoowzA0XMg4n',
-			fly_release_version: '1',
-		},
-		mounts: [
-			{ encrypted: true, name: 'pb_data', path: '/pb', size_gb: 1, volume: 'vol_6vj0mn5x67l2j8xr' },
-		],
-		restart: {},
-		services: [
-			{
-				autostart: true,
-				autostop: true,
-				concurrency: { hard_limit: 550, soft_limit: 500, type: 'requests' },
-				force_instance_key: null,
-				internal_port: 8080,
-				min_machines_running: 0,
-				ports: [
-					{ force_https: true, handlers: ['http'], port: 80 },
-					{ handlers: ['http', 'tls'], port: 443 },
-				],
-				protocol: 'tcp',
-			},
-		],
-	}
-	*/
 	console.log('typeof primaryMachine.config', typeof primaryMachine.config)
 	console.log('primaryMachine.config', JSON.stringify(primaryMachine.config, null, 2))
 	for (let attr in primaryMachine.config) {
@@ -108,23 +74,32 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 			return c.json(200, { data: null, error: err })
 		}
 		console.log('add-region 04')
-		// TURN ON REPLICATION
+		// ENABLE REPLICATION
+		// touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
+		const HOST_KEY_PATH = $os.getenv("HOST_KEY_PATH") || '/pb/.ssh/ssh_host_rsa_key'
 		try {
-			const res = $http.send({
-				url: `http://[${primaryMachine.private_ip}]:2222/enable-replication`,
-				method: 'POST',
-				body: '', // eg. JSON.stringify({"test": 123})
-				headers: {
-					'content-type': 'application/json',
-					Authorization: 'Bearer ' + $os.getenv('SERVER_KEY'),
-				},
-				timeout: 30, // in seconds
-			})
-			console.log('enable replication response: ', JSON.stringify(res, null, 2))
+			cmd = $os.cmd(
+				`ls`,`-al`,`${HOST_KEY_PATH}`
+			)
+			// cmd = $os.cmd(
+			// 	`/usr/bin/ssh`,
+			// 	`-p`,`2222`,
+			// 	`-i`,`${HOST_KEY_PATH}`,
+			// 	`-o`,`StrictHostKeyChecking=no`,
+			// 	`root@${primaryMachine.private_ip}`,
+			// 	`"touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &"`
+			// )
+			console.log('enable replication cmd')
+			console.log('*********************')
+			console.log(cmd)
+			console.log('*********************')
+			output = String.fromCharCode(...cmd.output())
+			console.log('enable replication output: ', output)
 		} catch (err) {
-			console.log('could not enable replication on primary machine', err)
+			console.log('could not enable replication', err)
 			return c.json(200, { data: null, error: err })
 		}
+		console.log('add-region 04')
 	}
 	console.log('add-region 05')
 	// CLONE PRIMARY MACHINE VOLUME

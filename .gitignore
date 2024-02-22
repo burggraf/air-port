@@ -10,6 +10,8 @@ node_modules
 pb_data/
 pb_hooks/config.json
 
+pb_hooks/.ssh
+
 # who still uses firebase?
 /.firebase
 .firebaserc
