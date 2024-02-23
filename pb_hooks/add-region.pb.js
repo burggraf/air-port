@@ -106,37 +106,37 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 		return c.json(200, { data: null, error: err })
 	}
 	// CHECK STATUS OF NEW VOLUME
-	let volumeStatus;
-	const checkVolumeStatus = () => {
-		console.log('add-region 06 - check status of new volume')
-		try {
-			cmd = $os.cmd(
-				`fly`,
-				`volumes`,
-				`show`,
-				`${newVolume}`,
-				`--access-token`,
-				`${config.FLY_ORG_TOKEN}`,
-				`-j`
-			)
-			output = String.fromCharCode(...cmd.output())
-			volumeStatus = JSON.parse(output).state
-			console.log('fly volumes show output: ', output)
-		} catch (err) {
-			console.log('could not get fly volume show', err)
-			return c.json(200, { data: null, error: err })
-		}	
-	}
-	checkVolumeStatus()
-	for (let i = 0; i < 20; i++) {
-		if (volumeStatus !== 'created') {
-			sleep(3000)
-			console.log('WAITING FOR VOLUME TO HYDRATE...', i);
-			checkVolumeStatus()
-		} else {
-			break;
-		}
-	}	
+	// let volumeStatus;
+	// const checkVolumeStatus = () => {
+	// 	console.log('add-region 06 - check status of new volume')
+	// 	try {
+	// 		cmd = $os.cmd(
+	// 			`fly`,
+	// 			`volumes`,
+	// 			`show`,
+	// 			`${newVolume}`,
+	// 			`--access-token`,
+	// 			`${config.FLY_ORG_TOKEN}`,
+	// 			`-j`
+	// 		)
+	// 		output = String.fromCharCode(...cmd.output())
+	// 		volumeStatus = JSON.parse(output).state
+	// 		console.log('fly volumes show output: ', output)
+	// 	} catch (err) {
+	// 		console.log('could not get fly volume show', err)
+	// 		return c.json(200, { data: null, error: err })
+	// 	}	
+	// }
+	// checkVolumeStatus()
+	// for (let i = 0; i < 20; i++) {
+	// 	if (volumeStatus !== 'created') {
+	// 		sleep(3000)
+	// 		console.log('WAITING FOR VOLUME TO HYDRATE...', i);
+	// 		checkVolumeStatus()
+	// 	} else {
+	// 		break;
+	// 	}
+	// }	
 	console.log('add-region 07')
 	// CLONE PRIMARY MACHINE
 	// fly machine clone $MACHINE_ID -r $REGION --attach-volume $VOLUME_ID:/pb --app $APP

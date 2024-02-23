@@ -476,12 +476,14 @@
 											</ion-row>	
 											{/each}
 											</ion-grid>
+											{#if !machine.is_primary}
 											<div class="ion-padding">
 												<ion-button size="small" expand="block" on:click={() => {removeMachine(machine)}} color="danger">
 													<ion-icon slot="start" icon={trashOutline} />
 													Remove Machine
 												</ion-button>
 											</div>
+											{/if}
 										<!-- </ion-item>								 -->
 								</div>
 							</ion-accordion>
