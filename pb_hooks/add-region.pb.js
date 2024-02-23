@@ -2,7 +2,11 @@
 routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 	console.log('add-region 00')
 	const { select } = require(`${__hooks}/modules/sql.js`)
+	console.log('add-region 00a')
 	const { updateStatus } = require(`${__hooks}/modules/updateStatus.js`)
+	console.log('add-region 00b')
+	const { runRemote } = require(`${__hooks}/modules/runRemote.js`)
+	console.log('add-region 00c')
 	const config = require(`${__hooks}/config.json`)
 	const Domain = c.pathParam('Domain')
 	const region = c.pathParam('region')
@@ -18,6 +22,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 		{ userid: '' },
 		`select userid from apps where Domain = '${Domain}'`
 	)
+	console.log('add-region 00c')
 	if (appDataError) return c.json(200, { data: null, error: 'cannot check userid' })
 	if (appData.length !== 1) return c.json(200, { data: null, error: 'app not found' })
 	if (appData[0].userid !== userid) return c.json(200, { data: null, error: 'not your project' })
@@ -53,51 +58,21 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 	let cmd
 	let output
 	console.log('add-region 03')
+
 	if (machineData.length === 1) {
 		// only one machine, we must enable replication on primary
-		// START PRIMARY MACHINE
-		try {
-			cmd = $os.cmd(
-				`fly`,
-				`machines`,
-				`start`,
-				`${primaryMachine.machine_id}`,
-				`--app`,
-				`${Domain}`,
-				`--access-token`,
-				`${config.FLY_ORG_TOKEN}`
-			)
-			output = String.fromCharCode(...cmd.output())
-			console.log('start primary machine output: ', output)
-		} catch (err) {
-			console.log('could not start primary machine', err)
-			return c.json(200, { data: null, error: err })
+		const { data: enableReplicationData, error: enableReplicationError } = 
+		runRemote(	Domain, 
+						primaryMachine.machine_id, 
+						primaryMachine.private_ip,
+						`/bin/touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &`
+		);
+		if (enableReplicationError) {
+			console.log('enableReplicationError', enableReplicationError)
+			return c.json(200, { data: null, error: enableReplicationError })
+		} else {
+			console.log('enableReplicationData', enableReplicationData)		
 		}
-		console.log('add-region 04 - enable replication on primary machine')
-		// ENABLE REPLICATION
-		// touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
-		const HOST_KEY_PATH = $os.getenv("HOST_KEY_PATH") || '/pb/.ssh/ssh_host_rsa_key'
-
-		try {
-			cmd = $os.cmd(
-				`/usr/bin/ssh`,
-				`-p`,`2222`,
-				`-i`,`${HOST_KEY_PATH}`,
-				`-o`,`StrictHostKeyChecking=no`,
-				`root@${primaryMachine.private_ip}`,
-				`/bin/touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &`
-			)
-			console.log('enable replication cmd')
-			console.log('*********************')
-			console.log(cmd)
-			console.log('*********************')
-			output = String.fromCharCode(...cmd.output())
-			console.log('enable replication output: ', output)
-		} catch (err) {
-			console.log('could not enable replication', err)
-			return c.json(200, { data: null, error: err })
-		}
-		console.log('add-region 04')
 	}
 	console.log('add-region 05 - fork primary volume')
 	// CLONE PRIMARY MACHINE VOLUME
