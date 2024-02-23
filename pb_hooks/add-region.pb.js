@@ -73,22 +73,20 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 			console.log('could not start primary machine', err)
 			return c.json(200, { data: null, error: err })
 		}
-		console.log('add-region 04')
+		console.log('add-region 04 - enable replication on primary machine')
 		// ENABLE REPLICATION
 		// touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
 		const HOST_KEY_PATH = $os.getenv("HOST_KEY_PATH") || '/pb/.ssh/ssh_host_rsa_key'
+
 		try {
 			cmd = $os.cmd(
-				`ls`,`-al`,`${HOST_KEY_PATH}`
+				`/usr/bin/ssh`,
+				`-p`,`2222`,
+				`-i`,`${HOST_KEY_PATH}`,
+				`-o`,`StrictHostKeyChecking=no`,
+				`root@${primaryMachine.private_ip}`,
+				`/bin/touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &`
 			)
-			// cmd = $os.cmd(
-			// 	`/usr/bin/ssh`,
-			// 	`-p`,`2222`,
-			// 	`-i`,`${HOST_KEY_PATH}`,
-			// 	`-o`,`StrictHostKeyChecking=no`,
-			// 	`root@${primaryMachine.private_ip}`,
-			// 	`"touch /pb/marmot.active;/marmot -config /pb/marmot.toml -cleanup;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &"`
-			// )
 			console.log('enable replication cmd')
 			console.log('*********************')
 			console.log(cmd)
@@ -101,7 +99,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 		}
 		console.log('add-region 04')
 	}
-	console.log('add-region 05')
+	console.log('add-region 05 - fork primary volume')
 	// CLONE PRIMARY MACHINE VOLUME
 	// fly volumes fork --app burggraf vol_krk205zwyq361dyr -r atl -j
 	try {
@@ -124,7 +122,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 		console.log('could not fork primary volume', err)
 		return c.json(200, { data: null, error: err })
 	}
-	console.log('add-region 06')
+	console.log('add-region 06 - clone primary machine with new volume')
 	let newVolume
 	try {
 		newVolume = JSON.parse(output).id
@@ -132,6 +130,38 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 		console.log('could not parse fly volumes fork output', err)
 		return c.json(200, { data: null, error: err })
 	}
+	// CHECK STATUS OF NEW VOLUME
+	let volumeStatus;
+	const checkVolumeStatus = () => {
+		console.log('add-region 06 - check status of new volume')
+		try {
+			cmd = $os.cmd(
+				`fly`,
+				`volumes`,
+				`show`,
+				`${newVolume}`,
+				`--access-token`,
+				`${config.FLY_ORG_TOKEN}`,
+				`-j`
+			)
+			output = String.fromCharCode(...cmd.output())
+			volumeStatus = JSON.parse(output).state
+			console.log('fly volumes show output: ', output)
+		} catch (err) {
+			console.log('could not get fly volume show', err)
+			return c.json(200, { data: null, error: err })
+		}	
+	}
+	checkVolumeStatus()
+	for (let i = 0; i < 20; i++) {
+		if (volumeStatus !== 'created') {
+			sleep(3000)
+			console.log('WAITING FOR VOLUME TO HYDRATE...', i);
+			checkVolumeStatus()
+		} else {
+			break;
+		}
+	}	
 	console.log('add-region 07')
 	// CLONE PRIMARY MACHINE
 	// fly machine clone $MACHINE_ID -r $REGION --attach-volume $VOLUME_ID:/pb --app $APP

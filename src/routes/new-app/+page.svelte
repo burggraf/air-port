@@ -24,6 +24,7 @@
 	import { showConfirm } from '$services/alert.service'
 	import type { AppsRecord } from '$models/pocketbase-types'
 	import { chooseRegion } from '$services/region.service'
+	import { set } from 'ol/transform'
 
 	let primary_region = "";
 	let pb_version = versions[0]

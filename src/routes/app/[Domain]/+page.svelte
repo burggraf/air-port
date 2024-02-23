@@ -44,27 +44,27 @@
 		await updateStatus()
 	}
 	const loadData = async () => {
-		let loader = await loadingBox('Loading app info...')
+		// let loader = await loadingBox('Loading app info...')
 		try {
 			app = await pb.collection('apps').getFirstListItem(`Domain="${Domain}"`, {
 				// expand: 'relField1,relField2.subRelField',
 			});
 			console.log('app', app)
 		} catch (err) {
-			loader.dismiss()
+			// loader.dismiss()
 			console.log('error getting app record', err)
 			goto('/apps')
 		}
 		console.log('get machines for app', app.Domain)
 		if (app.Domain) {
-			loader.dismiss()
-			loader = await loadingBox('Loading machine(s) info...')
+			// loader.dismiss()
+			// loader = await loadingBox('Loading machine(s) info...')
 			machines = await pb.collection('machines').getFullList({
 				filter: `Domain = '${app.Domain}'`,
 				// sort: 'name,type,site_name,instance_status',
 			})
 			console.log('machines', machines)
-			loader.dismiss()
+			// loader.dismiss()
 		}
 		
 		console.log('setting form values')
@@ -76,15 +76,15 @@
 		form.type = app.type || ""
 	}
 	const updateStatus = async () => {
-		const loader = await loadingBox('Updating app status...')
+		// const loader = await loadingBox('Updating app status...')
 		try {
 			const { data, error } = await pb.send(`/update-app-status/${Domain}`, {
 				method: 'GET',
 			})
-			loader.dismiss()
+			// loader.dismiss()
 			console.log('updateStatus: data, error', data, error)
 		} catch (err) {
-			loader.dismiss()
+			// loader.dismiss()
 			console.log('OOPS: error updating status', err)
 		}
 		loadData();
