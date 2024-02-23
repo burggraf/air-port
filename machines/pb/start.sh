@@ -19,9 +19,7 @@ if [ ! -f /pb/.ssh/ssh_host_rsa_key ]; then
     ssh-keygen -A
     mkdir -p /pb/.ssh
     cp /etc/ssh/* /pb/.ssh
-fi
-if [ ! -f /pb/.ssh/authorized_keys ]; then
-    echo -e "$AUTHORIZED_KEYS" > /pb/.ssh/authorized_keys
+    cat /pb/.ssh/ssh_host_rsa_key.pub >> /pb/.ssh/authorized_keys
 fi
 
 /usr/sbin/sshd -f /pb/.ssh/sshd_config

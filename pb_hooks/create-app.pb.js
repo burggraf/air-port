@@ -70,7 +70,7 @@ routerAdd('POST', '/create-app/:version', (c) => {
 			`--image`,`registry.fly.io/air-port-dev:${version}`,
 			`--region`,`${primary_region}`,
 			`--now`,
-			`--env`,`AUTHORIZED_KEYS=${config.AUTHORIZED_KEYS}`,
+			//`--env`,`AUTHORIZED_KEYS=${config.AUTHORIZED_KEYS}`,
 			`--access-token`,`${config.FLY_ORG_TOKEN}`)
 		console.log('create machine cmd:')
 		console.log('*****************************')
