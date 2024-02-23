@@ -17,6 +17,7 @@
 		ellipse,
 		ellipseSharp,
 		syncCircleOutline,
+		trashOutline,
 	} from 'ionicons/icons'
 	import { currentUser, pb } from '$services/backend.service'
 	import { goto } from '$app/navigation'
@@ -121,6 +122,28 @@
 			})
 		}
 	}
+	const removeMachine = async (machine: MachinesRecord) => {
+		await showConfirm({
+			header: 'Remove Machine',
+			message: `This will completely remove this machine in ${getRegionName(machine.region || "")}.  Are you SURE?`,
+			okHandler: async () => {
+				const loader = await loadingBox(`Deleting machine in ${getRegionName(machine.region || "")}...`)
+				loader.present()
+				const { data, error } = await pb.send(`/remove-machine/${machine.machine_id}`, {
+					method: 'GET',
+				})
+				console.log('remove-machine data, error', data, error)
+				loader.dismiss()
+				if (error) {
+					toast('Error: ' + JSON.stringify(error), 'danger')
+				} else {
+					await updateStatus()
+					toast('Machine removed', 'success') 
+				}
+			},
+		})
+	}
+
 	const resync = async () => {
 		toast('This feature is not ready yet', 'danger')
 		if (machines.length < 2) {
@@ -453,6 +476,12 @@
 											</ion-row>	
 											{/each}
 											</ion-grid>
+											<div class="ion-padding">
+												<ion-button size="small" expand="block" on:click={() => {removeMachine(machine)}} color="danger">
+													<ion-icon slot="start" icon={trashOutline} />
+													Remove Machine
+												</ion-button>
+											</div>
 										<!-- </ion-item>								 -->
 								</div>
 							</ion-accordion>
