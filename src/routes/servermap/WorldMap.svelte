@@ -10,6 +10,8 @@
 	import OSM from 'ol/source/OSM'
 	import { Vector as VectorLayer } from 'ol/layer'
 	import { Vector as VectorSource } from 'ol/source'
+	import { regions as cities } from '$services/region.service'
+
 	import IonPage from '$ionpage'
 	// import { add } from 'ol/coordinate'
 	import { pb, currentUser } from '$services/backend.service'
@@ -17,7 +19,7 @@
 	let vectorSource: any // Declare vectorSource in the outer scope
 	// Function to initialize the map
 	async function initializeMap() {
-		await loadCities()
+		// await loadCities()
 		console.log('cities', cities)
 		const mapElement = document.getElementById('map')
 		if (!mapElement) {
@@ -37,7 +39,7 @@
 			target: mapElement,
 			layers: [osmLayer, vectorLayer],
 			view: new View({
-				center: [0, 0 ], // Center of the map
+				center: [0, 0], // Center of the map
 				zoom: 1, // Initial zoom level
 			}),
 		})
@@ -103,13 +105,6 @@
 		// Set the center of the map view
 		map.getView().setCenter(coordinates);
 	}
-	let cities: any[] = []
-	const loadCities = async () => {
-		cities = await pb.collection('sites').getFullList({
-			fields: 'metadata, code',
-			sort: 'name',
-		})
-	}
 	// Add cities as dots on the map
 	function addCity(latitude: number, longitude: number, cityName: string, cityCode: string) {
 		console.log('addCity', latitude, longitude, cityName)
@@ -152,11 +147,11 @@
 		console.log('ionViewDidEnter')
 		await initializeMap()
 		for (const city of cities) {
-			if (city.metadata?.latitude && city.metadata?.longitude) {
+			if (city?.latitude && city?.longitude) {
 				addCity(
-					city.metadata.latitude,
-					city.metadata.longitude,
-					city.metadata?.city || '',
+					city.latitude,
+					city.longitude,
+					city?.name || '',
 					city.code || ''
 				)
 			}
@@ -181,7 +176,7 @@
 <style>
 	.map {
 		width: 100%;
-		height: 50%;/*600px;*/
+		height: 80%;/*600px;*/
 	}
 	/* ol-attribution ol-unselectable ol-control ol-uncollapsible */
 </style>
