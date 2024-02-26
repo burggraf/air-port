@@ -16,6 +16,7 @@
 		codeDownloadSharp,
 		ellipse,
 		ellipseSharp,
+		refreshOutline,
 		star,
 		syncCircleOutline,
 		trashOutline,
@@ -140,6 +141,29 @@
 				} else {
 					await updateStatus()
 					toast('Machine removed', 'success') 
+				}
+			},
+		})
+	}
+	const rsync = async (machine: MachinesRecord) => {
+		await showConfirm({
+			header: 'Re-Sync Data',
+			message: `This will sync all files and data between the primary and replica instances in ${getRegionName(machine.region || "")}.  Are you SURE?`,
+			okHandler: async () => {
+				const loader = await loadingBox(`Resyncing replicas with primary in ${getRegionName(machine.region || "")}...`)
+				loader.present()
+				const { data, error } = await pb.send(`/rsync`, {
+					method: 'POST',
+					body: {
+						Domain: machine.Domain,
+						machine_id: machine.machine_id
+					}
+				})
+				loader.dismiss()
+				if (error) {
+					toast('Error: ' + JSON.stringify(error), 'danger')
+				} else {
+					toast('Rsync complete', 'success')
 				}
 			},
 		})
@@ -419,6 +443,15 @@
 									<ion-icon slot="end" icon={machine.is_primary?star:ellipse} color={machine.state==='started'?'success':'warning'} />
 								</ion-item>
 								<div class="ion-padding" slot="content">
+										{#if !machine.is_primary}
+										<div class="ion-padding">
+											<ion-button size="small" expand="block" on:click={() => {rsync(machine)}} color="medium">
+												<ion-icon slot="start" icon={refreshOutline} />
+												Re-sync Data
+											</ion-button>
+										</div>
+										{/if}
+
 										<ion-item>
 											Config:
 											<ion-text slot="end">
