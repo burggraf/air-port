@@ -16,6 +16,7 @@
 		codeDownloadSharp,
 		ellipse,
 		ellipseSharp,
+		star,
 		syncCircleOutline,
 		trashOutline,
 	} from 'ionicons/icons'
@@ -412,10 +413,10 @@
 					<ion-list>
 					<ion-accordion-group>
 						{#each machines as machine}
-							<ion-accordion value="first">
-								<ion-item slot="header" color="light">
-									<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>
-									<ion-icon slot="end" icon={ellipse} color={machine.state==='started'?'success':'warning'} />
+							<ion-accordion value={machine.machine_id}>
+								<ion-item slot="header" color={machine.is_primary?'dark':'medium'}>
+									<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>									
+									<ion-icon slot="end" icon={machine.is_primary?star:ellipse} color={machine.state==='started'?'success':'warning'} />
 								</ion-item>
 								<div class="ion-padding" slot="content">
 										<ion-item>
@@ -440,7 +441,7 @@
 											Updated:
 											<ion-text slot="end">{machine?.updated_at}</ion-text>
 										</ion-item>
-										<ion-item-divider>
+										<ion-item-divider color="light">
 											<ion-label>Events</ion-label>
 										</ion-item-divider>
 										<!-- <ion-item> -->
