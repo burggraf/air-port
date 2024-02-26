@@ -105,7 +105,7 @@ routerAdd('POST', '/rsync', (c) => {
     )
     if (hooksError) console.log('hooksError', hooksError)
     if (hooksError) return c.json(200, { data: null, error: hooksError })
-    if (hooksData) console.log('publicData', hooksData)
+    if (hooksData) console.log('hooksData', hooksData)
 
     const { data: dataData, error: dataError } = runRemote(
         Domain,
@@ -115,8 +115,23 @@ routerAdd('POST', '/rsync', (c) => {
     )
     if (dataError) console.log('dataError', dataError)
     if (dataError) return c.json(200, { data: null, error: dataError })
-    if (dataData) console.log('publicData', dataData)
+    if (dataData) console.log('dataData', dataData)
+
+    // RESTART MARMOT ON THE TARGET MACHINE
+    const { data: marmotData, error: marmotError } = runRemote(
+        Domain,
+        targetMachine.machine_id,
+        targetMachine.private_ip,
+        "kill `pgrep marmot` && rm /pb/marmot.cbor && /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 & "
+    )
+    if (marmotError) console.log('marmotError', marmotError)
+    if (marmotError) return c.json(200, { data: null, error: marmotError })
+    if (marmotData) console.log('marmotData', marmotData)
+
     return c.json(200, { data: 'OK', error: null })
+
+    // restart marmot:
+    // kill `pgrep marmot` && rm /pb/marmot.cbor && /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
 
 // rsync -avz -e "ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key \
 //      -o StrictHostKeyChecking=no" /pb/pb_public/ root@[$1]:/pb/pb_public/
