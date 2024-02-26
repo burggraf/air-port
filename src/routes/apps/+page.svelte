@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import IonPage from '$ionpage'
-	import { addOutline, createOutline, ellipse } from 'ionicons/icons'
+	import { addOutline, createOutline, ellipse, star } from 'ionicons/icons'
 	import { pb, currentUser } from '$services/backend.service'
 	import type { AppsRecord, MachinesRecord } from '$models/pocketbase-types'
 	import { getRegionName, regions } from '$services/region.service'
@@ -25,7 +25,7 @@
 				}
 			});
 		}
-	}
+	}	
 	const loadData = async () => {
 		machines = await pb.collection('machines').getFullList({
 			// sort: 'name,type,site_name,instance_status',
@@ -39,26 +39,19 @@
 	const newApp = async () => {
 		goto('/new-app')
 	}
-	const updateStatus = async (Domain: string, delay?: number) => {
-		const doUpdateStatus = async () => {
-			const loader = await loadingBox('Updating app status...')
-			try {
-				const { data, error } = await pb.send(`/update-app-status/${Domain}`, {
-					method: 'GET',
-				})
-				loader.dismiss()
-				console.log('updateStatus: data, error', data, error)
-			} catch (err) {
-				loader.dismiss()
-				console.log('OOPS: error updating status', err)
-			}
-			loadData();
+	const updateStatus = async (Domain: string) => {
+		const loader = await loadingBox('Updating app status...')
+		try {
+			const { data, error } = await pb.send(`/update-app-status/${Domain}`, {
+				method: 'GET',
+			})
+			loader.dismiss()
+			console.log('updateStatus: data, error', data, error)
+		} catch (err) {
+			loader.dismiss()
+			console.log('OOPS: error updating status', err)
 		}
-		if (delay) {
-			setTimeout(doUpdateStatus, delay)
-		} else {
-			doUpdateStatus()
-		}
+		loadData();
 	}
 
 	const getMachinesForApp = (domain: string) => {
@@ -167,7 +160,7 @@
 								<ion-row>
 									<ion-col>
 										<ion-button color="dark" size="small" fill="outline" expand="block" on:click={() => {
-											window.open(`https://${app.Domain}.fly.dev/_/`);updateStatus(app.Domain || "", 2000);
+											window.open(`https://${app.Domain}.fly.dev/_/`);
 											}}>
 											Manage
 											<ion-icon slot="end" src="/pb.svg" />
@@ -194,15 +187,15 @@
 							<ion-list>
 								{#each getMachinesForApp(app.Domain || "") as machine}
 									<ion-item
-										style="cursor:pointer;--padding-start:0px;--inner-padding-end: 0px;"
+										style="cursor: url('/refresh.png'), auto;--padding-start:0px;--inner-padding-end: 0px;"
 										lines="full"
 										on:click={() => {
-											goto(`/machine/${machine.id}`)
+											updateStatus(app.Domain || "")
 										}}
 									>
 										{getRegionName(machine.region || "")}
 
-										<ion-icon slot="end" icon={ellipse} color={machine.state==='started'?'success':'warning'} />
+										<ion-icon slot="end" icon={machine.is_primary?star:ellipse} color={machine.state==='started'?'success':'warning'} />
 
 									</ion-item>
 								{/each}
