@@ -53,8 +53,8 @@
 
 	const appPages: AppPage[] = [
 		{
-			title: 'Projects',
-			url: 'projects',
+			title: 'Apps',
+			url: 'apps',
 			icon: 'home',
 			children: [],
 		},
@@ -138,19 +138,6 @@
 		hideMenu = false
 	}, 100)
 
-	const showIOSinstall = async () => {
-		const modal = await modalController.create({
-			componentProps: {},
-			showBackdrop: true,
-			backdropDismiss: false,
-		})
-
-		modal.onDidDismiss().then((value) => {
-			//if (value.role === 'backdrop') console.log('Backdrop clicked');
-		})
-
-		await modal.present()
-	}
 	const toggleOnlineStatus = async (e: any) => {
 		await showConfirm({
 			header: 'Manually set online status',
