@@ -69,9 +69,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
 			`--access-token`,
 			`${config.FLY_ORG_TOKEN}`
 		)
-		console.log('fly machines clone cmd: ', cmd)
 		output = String.fromCharCode(...cmd.output())
-		console.log('fly machines clone output: ', output)
 	} catch (err) {
 		console.log('could not clone primary machine', err)
 		return c.json(200, { data: null, error: err })
@@ -90,9 +88,7 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
             `--access-token`,
             `${config.FLY_ORG_TOKEN}`
         )
-        console.log('machines list cmd: ', cmd)
         output = String.fromCharCode(...cmd.output())
-        console.log('machines list output: ', output)
 		const machines = JSON.parse(output);
 		targetMachine = machines.filter((m) => m.region === region)[0];
 		targetMachine.machine_id = targetMachine.id;
@@ -100,104 +96,42 @@ routerAdd('GET', '/add-region/:Domain/:region', async (c) => {
         console.log('could not get new clone machine info', err)
         return c.json(200, { data: null, error: err })
 	}
-	console.log('targetMachine')
-	console.log(JSON.stringify(targetMachine,null,2))
 
 	// add primary machine's public key to the new machine
 	console.log('get primary machine public key')
 	// "cat /pb/.ssh/ssh_host_rsa_key.pub"
-    const { data: getKeyData, error: getKeyError } = runRemote(
+	console.log('**** primaryMachine', primaryMachine)
+    const { data: getKeyData, error: getKeyError } = await runRemote(
         Domain,
         primaryMachine.machine_id,
         primaryMachine.private_ip,
         `cat /pb/.ssh/ssh_host_rsa_key.pub`
     )
-    if (getKeyError) console.log('getKeyError', getKeyError)
     if (getKeyError) return c.json(200, { data: null, error: getKeyError })
-    if (getKeyData) console.log('publicData', getKeyData)
-	const primaryMachinePublicKey = getKeyData;
-	console.log('primaryMachinePublicKey:')
-	console.log('*******************************')
-	console.log(primaryMachinePublicKey)
-	console.log('*******************************')
+	const primaryMachinePublicKey = getKeyData.replace(/\n/g, '');
+	console.log('*********************')
+	console.log('primaryMachinePublicKey', primaryMachinePublicKey)
+	console.log('*********************')
 
 	console.log('add primary machine public key to target machine authorized_keys')
-    const { data: putKeyData, error: putKeyError } = runRemote(
+	console.log('**** targetMachine', Domain, targetMachine.machine_id, targetMachine.private_ip)
+    const { data: putKeyData, error: putKeyError } = await runRemote(
         Domain,
         targetMachine.machine_id,
         targetMachine.private_ip,
-        `echo '${primaryMachinePublicKey}' >> /pb/.ssh/authorized_keys`
+        `/bin/sh -c "echo '${primaryMachinePublicKey}' >> /pb/.ssh/authorized_keys"`
     )
-    if (putKeyError) console.log('putKeyError', putKeyError)
     if (putKeyError) return c.json(200, { data: null, error: putKeyError })
-    if (putKeyData) console.log('publicData', putKeyData)
+	console.log('*********************')
+	console.log('putKeyData', putKeyData)
+	console.log('*********************')
 
-	console.log('add-region 04 - rsync to new machine')
+	// console.log('add-region 04 - rsync to new machine')
 	// now sync the new instance
-    // ************* rsync ***************
-	console.log('*** rsync pb_public')
-	console.log(`rsync -avz -e 'ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key -o StrictHostKeyChecking=no' /pb/pb_public/ root@[${targetMachine.private_ip}]:/pb/pb_public/`)
-    const { data: publicData, error: publicError } = runRemote(
-        Domain,
-        primaryMachine.machine_id,
-        primaryMachine.private_ip,
-        `rsync -avz -e 'ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key -o StrictHostKeyChecking=no' /pb/pb_public/ root@[${targetMachine.private_ip}]:/pb/pb_public/`
-    )
-    if (publicError) console.log('publicError', publicError)
-    if (publicError) return c.json(200, { data: null, error: publicError })
-    if (publicData) console.log('publicData', publicData)
 
-	console.log('*** rsync pb_migrations')
-    const { data: migrationsData, error: migrationsError } = runRemote(
-        Domain,
-        primaryMachine.machine_id,
-        primaryMachine.private_ip,
-        `rsync -avz -e 'ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key -o StrictHostKeyChecking=no' /pb/pb_migrations/ root@[${targetMachine.private_ip}]:/pb/pb_migrations/`
-    )
-    if (migrationsError) console.log('migrationsError', migrationsError)
-    if (migrationsError) return c.json(200, { data: null, error: migrationsError })
-    if (migrationsData) console.log('migrationsData', migrationsData)
-
-	console.log('*** rsync pb_hooks')
-    const { data: hooksData, error: hooksError } = runRemote(
-        Domain,
-        primaryMachine.machine_id,
-        primaryMachine.private_ip,
-        `rsync -avz -e 'ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key -o StrictHostKeyChecking=no' /pb/pb_hooks/ root@[${targetMachine.private_ip}]:/pb/pb_hooks/`
-    )
-    if (hooksError) console.log('hooksError', hooksError)
-    if (hooksError) return c.json(200, { data: null, error: hooksError })
-    if (hooksData) console.log('hooksData', hooksData)
-
-	console.log('*** rsync pb_data')
-    const { data: dataData, error: dataError } = runRemote(
-        Domain,
-        primaryMachine.machine_id,
-        primaryMachine.private_ip,
-        `rsync -avz -e 'ssh -p 2222 -i /pb/.ssh/ssh_host_rsa_key -o StrictHostKeyChecking=no' /pb/pb_data/ root@[${targetMachine.private_ip}]:/pb/pb_data/`
-    )
-    if (dataError) console.log('dataError', dataError)
-    if (dataError) return c.json(200, { data: null, error: dataError })
-    if (dataData) console.log('dataData', dataData)
-
-    // RESTART MARMOT ON THE TARGET MACHINE
-	console.log('*** reset marmot on target machine')
-    const { data: marmotData, error: marmotError } = runRemote(
-        Domain,
-        targetMachine.machine_id,
-        targetMachine.private_ip,
-        "kill `pgrep marmot`;rm /pb/marmot.cbor;/marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 & "
-    )
-    if (marmotError) console.log('marmotError', marmotError)
-    if (marmotError) return c.json(200, { data: null, error: marmotError })
-    if (marmotData) console.log('marmotData', marmotData)
-    // ************* end of rsync ***************
-
-
-
-	const { data: updateStatusData, error: updateStatusError } = updateStatus(Domain, userid, true)
-	if (updateStatusError) {
-		console.log('updateStatusError', updateStatusError)
-	}
+	// const { data: updateStatusData, error: updateStatusError } = updateStatus(Domain, userid, true)
+	// if (updateStatusError) {
+	// 	console.log('updateStatusError', updateStatusError)
+	// }
 	return c.json(200, { data: 'ok', error: null })
 })

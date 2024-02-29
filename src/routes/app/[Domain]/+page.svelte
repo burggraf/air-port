@@ -90,7 +90,8 @@
 			// loader.dismiss()
 			console.log('OOPS: error updating status', err)
 		}
-		loadData();
+		await loadData();
+		return 'OK';
 	}
 	const back = async () => {
 		goto('/apps')
@@ -107,21 +108,48 @@
 				header: 'Add New Region',
 				message: `This will create a new app instance in ${getRegionName(region)}.  Are you SURE?`,
 				okHandler: async () => {
-					const loader = await loadingBox(`Creating new app instance in ${getRegionName(region)}...`)
+					let loader = await loadingBox(`Creating new app instance in ${getRegionName(region)}...`)
 					loader.present()
 					const { data, error } = await pb.send(`/add-region/${Domain}/${region}`, {
 						method: 'GET',
 					})
-					console.log('add-region data, error', data, error)
+					console.log('*** add-region data, error', data, error)
+					// rsync
 					loader.dismiss()
-					if (error) {
-						toast('Error: ' + JSON.stringify(error), 'danger')
+					loader = await loadingBox(`Loading data for new instance: ${getRegionName(region)}...`)
+					await updateStatus()
+					console.log('... updateStatus done ...')
+					console.log('*** ->>>> machines is now', machines)
+					loader.dismiss()
+					loader = await loadingBox(`Syncing data for new app instance in ${getRegionName(region)}...`)
+					const newMachine: any = machines.find(m => m.region === region)
+					if (!newMachine) {
+						toast('Error: new machine not found', 'danger')
+						console.log('machines is set to', machines)
+						return
+					}
+					console.log('newMachine', newMachine)
+					console.log('***********************')
+					console.log('newMachine Domain', newMachine.Domain)
+					console.log('newMachine.machine_id', newMachine.machine_id)
+					console.log('***********************')
+					const { data: rsyncData, error: rsyncError } = await pb.send(`/rsync`, {
+						method: 'POST',
+						body: {
+							Domain: newMachine.Domain,
+							machine_id: newMachine.machine_id
+						}
+					})
+					loader.dismiss()
+					if (rsyncError) {
+						toast('Error: ' + JSON.stringify(rsyncError), 'danger')
 					} else {
 						await updateStatus()
 						toast('New region added', 'success') 
 					}
 				},
 			})
+			await updateStatus()
 		}
 	}
 	const removeMachine = async (machine: MachinesRecord) => {

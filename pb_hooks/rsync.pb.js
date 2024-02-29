@@ -9,7 +9,7 @@ routerAdd('POST', '/rsync', async (c) => {
 	console.log('rsync 01')
     const { select } = require(`${__hooks}/modules/sql.js`)
 	const { runRemote } = require(`${__hooks}/modules/runRemote.js`)
-    const config = require(`${__hooks}/config.json`)
+    // const config = require(`${__hooks}/config.json`)
 	const req_data = $apis.requestInfo(c).data
 	const info = $apis.requestInfo(c)
 	const user = info.authRecord // empty if not authenticated as regular auth record
