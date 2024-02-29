@@ -7,18 +7,21 @@
     --publicDir /pb/pb_public \
     >> /pb/log.txt 2>&1 &
 
-if [ ! -f /pb/marmot.toml ]; then
+#if [ ! -f /pb/marmot.toml ]; then
     sed "s/\[NODE_ID\]/`printf \"%d\n\" \"0x$FLY_MACHINE_ID\"`/g" /marmot.toml.sample > /marmot1.toml
     sed "s/\[APP_NAME\]/$FLY_APP_NAME/g" /marmot1.toml > /marmot.toml
     cp /marmot.toml /pb/marmot.toml
-fi
+#fi
 if [ -f /pb/marmot.active ]; then
     /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 &
 fi
+echo "" >> /pb/log.txt
 if [ ! -f /pb/.ssh/ssh_host_rsa_key ]; then
+    echo "Generating SSH keys" >> /pb/log.txt
     ssh-keygen -A
     mkdir -p /pb/.ssh
     cp /etc/ssh/* /pb/.ssh
+    echo "Adding SSH keys to authorized_keys" >> /pb/log.txt
     cat /pb/.ssh/ssh_host_rsa_key.pub >> /pb/.ssh/authorized_keys
 fi
 

@@ -19,6 +19,7 @@ COPY ./marmot .
 COPY ./nats .
 COPY ./start.sh .
 COPY ./marmot.toml.sample .
+COPY ./reset_marmot.sh .
 # RUN mkdir -p /pb/.ssh
 COPY ./sshd_config /etc/ssh/sshd_config
 # COPY ./authorized_keys /pb/.ssh/authorized_keys

@@ -32,19 +32,33 @@ const runRemote = (Domain, machine_id, private_ip, command_to_run) => {
             `${private_ip}`,
             `-a`,
             `${Domain}`,
-            `--command`,
-            `/bin/sh -c "${command_to_run.replace(/"/g, '\\"')}"`,
-            `--access-token`,
+            `-C`,
+            // `/bin/sh -c "${command_to_run.replace(/"/g, '\\"')}"`,
+            //`'${command_to_run.replace(/'/g, "\\'")}'`,
+            //...(command_to_run.split(' ')),
+            command_to_run,
+            `-t`,
             `${config.FLY_ORG_TOKEN}`
         )
-        console.log('runRemote 1: fly ssh console cmd:')
-        console.log(cmd)
+        // console.log('***********************************')
+        // console.log('runRemote 1: fly ssh console cmd:')
+        // console.log('***********************************')
+        // console.log(cmd)
+        // console.log('***********************************')
         output = String.fromCharCode(...cmd.output())
-        console.log('runRemote 2: fly ssh console output: ', output)
+        // console.log('***********************************')
+        // console.log('runRemote 2: fly ssh console output: ')
+        // console.log('***********************************')
+        console.log(output)
+        // console.log('***********************************')
         return { data: output, error: null }
     } catch (err) {
-        console.log('ERROR runRemote 3: could not exec fly ssh console', err)
+        console.log('ERROR runRemote 3: could not exec fly ssh console')
+        console.log('err.value.stderr >>>>>', String.fromCharCode(...(err.value.stderr)))
         console.log('ERROR command_to_run 4', command_to_run)
+        console.log('*************************************')
+        console.log(cmd)
+        console.log('*************************************')
         return { data: null, error: err }
     }	
 }

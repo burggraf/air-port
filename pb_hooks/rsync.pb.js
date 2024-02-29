@@ -50,7 +50,7 @@ routerAdd('POST', '/rsync', (c) => {
             `--access-token`,
             `${config.FLY_ORG_TOKEN}`
         )
-        console.log('start primary machine cmd: ', cmd)
+        // console.log('start primary machine cmd: ', cmd)
         output = String.fromCharCode(...cmd.output())
         console.log('start primary machine output: ', output)
     } catch (err) {
@@ -68,7 +68,7 @@ routerAdd('POST', '/rsync', (c) => {
             `--access-token`,
             `${config.FLY_ORG_TOKEN}`
         )
-        console.log('start target machine cmd: ', cmd)
+        // console.log('start target machine cmd: ', cmd)
         output = String.fromCharCode(...cmd.output())
         console.log('start target machine output: ', output)
     } catch (err) {
@@ -76,7 +76,19 @@ routerAdd('POST', '/rsync', (c) => {
         return c.json(200, { data: null, error: err })
     }
 
-
+    const run = async (command, machine_id, private_ip) => {
+        console.log('running: ', command, machine_id, private_ip)
+        const { data, error } = await runRemote(
+            Domain,
+            machine_id,
+            private_ip,
+            command
+        )
+        if (error) console.log('error', error)
+        if (error) return c.json(200, { data: null, error })
+        if (data) console.log('data', publicData)    
+    }
+    // ************* rsync ***************
     const { data: publicData, error: publicError } = runRemote(
         Domain,
         primaryMachine.machine_id,
@@ -118,15 +130,8 @@ routerAdd('POST', '/rsync', (c) => {
     if (dataData) console.log('dataData', dataData)
 
     // RESTART MARMOT ON THE TARGET MACHINE
-    const { data: marmotData, error: marmotError } = runRemote(
-        Domain,
-        targetMachine.machine_id,
-        targetMachine.private_ip,
-        "kill `pgrep marmot` && rm /pb/marmot.cbor && /marmot -config /pb/marmot.toml >> /pb/marmot.txt 2>&1 & "
-    )
-    if (marmotError) console.log('marmotError', marmotError)
-    if (marmotError) return c.json(200, { data: null, error: marmotError })
-    if (marmotData) console.log('marmotData', marmotData)
+    // run(`killall marmot`, targetMachine.machine_id, targetMachine.private_ip)
+    run(`/bin/sh -c "/reset_marmot.sh"`, targetMachine.machine_id, targetMachine.private_ip)
 
     return c.json(200, { data: 'OK', error: null })
 
