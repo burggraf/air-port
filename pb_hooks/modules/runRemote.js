@@ -1,8 +1,11 @@
-const runRemote = (Domain, machine_id, private_ip, command_to_run) => {
+const runRemote = async (Domain, machine_id, private_ip, command_to_run) => {
+    const { data, error } = await run(Domain, machine_id, private_ip, command_to_run);
+    return { data, error };
+}
+const startMachine = async (Domain, machine_id) => {
     const config = require(`${__hooks}/config.json`)
     let cmd;
     let output;
-    // START MACHINE
     try {
         cmd = $os.cmd(
             `fly`,
@@ -16,11 +19,23 @@ const runRemote = (Domain, machine_id, private_ip, command_to_run) => {
         )
         output = String.fromCharCode(...cmd.output())
         console.log('runRemote: start machine output: ', output)
+        return { data: output, error: null}
     } catch (err) {
         console.log('runRemote: could not start machine', err)
-        return c.json(200, { data: null, error: err })
+        return { data: null, error: err }
     }
 
+}
+const run = async (Domain, machine_id, private_ip, command_to_run) => {
+    const config = require(`${__hooks}/config.json`)
+    let cmd;
+    let output;
+    // START MACHINE
+    const { data: startMachineData, error: startMachineError } = 
+        await startMachine(Domain, machine_id)
+    if (startMachineError) {
+        return { data: null, error: startMachineError }
+    }
     // RUN COMMAND
     try {
         // fly ssh console -A <ipv6> -a <domain> -C <cmd>
@@ -49,17 +64,14 @@ const runRemote = (Domain, machine_id, private_ip, command_to_run) => {
         // console.log('***********************************')
         // console.log('runRemote 2: fly ssh console output: ')
         // console.log('***********************************')
-        console.log(output)
+        console.log('command', command_to_run)
+        console.log('output', output)
         // console.log('***********************************')
         return { data: output, error: null }
     } catch (err) {
-        console.log('ERROR runRemote 3: could not exec fly ssh console')
-        console.log('err.value.stderr >>>>>', String.fromCharCode(...(err.value.stderr)))
-        console.log('ERROR command_to_run 4', command_to_run)
-        console.log('*************************************')
-        console.log(cmd)
-        console.log('*************************************')
+        console.log('command', command_to_run)
+        console.log('ERROR', String.fromCharCode(...(err.value.stderr)))
         return { data: null, error: err }
-    }	
+    }	    
 }
-module.exports = { runRemote }
+module.exports = { runRemote, startMachine }
