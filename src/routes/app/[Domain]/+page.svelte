@@ -10,15 +10,20 @@
 		addOutline,
 		arrowBackOutline,
 		arrowForwardOutline,
+		callOutline,
 		checkmarkCircleOutline,
 		checkmarkOutline,
 		closeCircleOutline,
 		codeDownloadSharp,
 		ellipse,
 		ellipseSharp,
+		listOutline,
+		personOutline,
 		refreshOutline,
+		settingsOutline,
 		star,
 		syncCircleOutline,
+		timeOutline,
 		trashOutline,
 	} from 'ionicons/icons'
 	import { currentUser, pb } from '$services/backend.service'
@@ -34,7 +39,7 @@
 
 	let machines: MachinesRecord[] = []
 
-	let app: AppsRecord;
+	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
 
 	const ionViewWillEnter = async () => {
@@ -51,7 +56,7 @@
 		try {
 			app = await pb.collection('apps').getFirstListItem(`Domain="${Domain}"`, {
 				// expand: 'relField1,relField2.subRelField',
-			});
+			})
 			console.log('app', app)
 		} catch (err) {
 			// loader.dismiss()
@@ -69,14 +74,14 @@
 			console.log('machines', machines)
 			// loader.dismiss()
 		}
-		
+
 		console.log('setting form values')
 		console.log('app.title', app.title)
 		console.log('app.Domain', app.Domain)
 		console.log('app.type', app.type)
-		form.title = app.title || ""
-		form.Domain = app.Domain || ""
-		form.type = app.type || ""
+		form.title = app.title || ''
+		form.Domain = app.Domain || ''
+		form.type = app.type || ''
 	}
 	const updateStatus = async () => {
 		// const loader = await loadingBox('Updating app status...')
@@ -90,8 +95,8 @@
 			// loader.dismiss()
 			console.log('OOPS: error updating status', err)
 		}
-		await loadData();
-		return 'OK';
+		await loadData()
+		return 'OK'
 	}
 	const back = async () => {
 		goto('/apps')
@@ -121,8 +126,10 @@
 					console.log('... updateStatus done ...')
 					console.log('*** ->>>> machines is now', machines)
 					loader.dismiss()
-					loader = await loadingBox(`Syncing data for new app instance in ${getRegionName(region)}...`)
-					const newMachine: any = machines.find(m => m.region === region)
+					loader = await loadingBox(
+						`Syncing data for new app instance in ${getRegionName(region)}...`
+					)
+					const newMachine: any = machines.find((m) => m.region === region)
 					if (!newMachine) {
 						toast('Error: new machine not found', 'danger')
 						console.log('machines is set to', machines)
@@ -137,15 +144,15 @@
 						method: 'POST',
 						body: {
 							Domain: newMachine.Domain,
-							machine_id: newMachine.machine_id
-						}
+							machine_id: newMachine.machine_id,
+						},
 					})
 					loader.dismiss()
 					if (rsyncError) {
 						toast('Error: ' + JSON.stringify(rsyncError), 'danger')
 					} else {
 						await updateStatus()
-						toast('New region added', 'success') 
+						toast('New region added', 'success')
 					}
 				},
 			})
@@ -155,9 +162,13 @@
 	const removeMachine = async (machine: MachinesRecord) => {
 		await showConfirm({
 			header: 'Remove Machine',
-			message: `This will completely remove this machine in ${getRegionName(machine.region || "")}.  Are you SURE?`,
+			message: `This will completely remove this machine in ${getRegionName(
+				machine.region || ''
+			)}.  Are you SURE?`,
 			okHandler: async () => {
-				const loader = await loadingBox(`Deleting machine in ${getRegionName(machine.region || "")}...`)
+				const loader = await loadingBox(
+					`Deleting machine in ${getRegionName(machine.region || '')}...`
+				)
 				loader.present()
 				const { data, error } = await pb.send(`/remove-machine/${machine.machine_id}`, {
 					method: 'GET',
@@ -168,7 +179,7 @@
 					toast('Error: ' + JSON.stringify(error), 'danger')
 				} else {
 					await updateStatus()
-					toast('Machine removed', 'success') 
+					toast('Machine removed', 'success')
 				}
 			},
 		})
@@ -176,16 +187,20 @@
 	const rsync = async (machine: MachinesRecord) => {
 		await showConfirm({
 			header: 'Re-Sync Data',
-			message: `This will sync all files and data between the primary and replica instances in ${getRegionName(machine.region || "")}.  Are you SURE?`,
+			message: `This will sync all files and data between the primary and replica instances in ${getRegionName(
+				machine.region || ''
+			)}.  Are you SURE?`,
 			okHandler: async () => {
-				const loader = await loadingBox(`Resyncing replicas with primary in ${getRegionName(machine.region || "")}...`)
+				const loader = await loadingBox(
+					`Resyncing replicas with primary in ${getRegionName(machine.region || '')}...`
+				)
 				loader.present()
 				const { data, error } = await pb.send(`/rsync`, {
 					method: 'POST',
 					body: {
 						Domain: machine.Domain,
-						machine_id: machine.machine_id
-					}
+						machine_id: machine.machine_id,
+					},
 				})
 				loader.dismiss()
 				if (error) {
@@ -230,7 +245,7 @@
 				const { data, error } = await pb.send('/remove-app', {
 					method: 'POST',
 					body: {
-						Domain
+						Domain,
 					},
 				})
 				loader.dismiss()
@@ -244,7 +259,6 @@
 		})
 	}
 
-
 	const changeVersion = async (e: any) => {
 		toast('This feature is not ready yet', 'danger')
 	}
@@ -254,7 +268,7 @@
 	const change_app_title = async () => {
 		const loader = await loadingBox('Changing app title...')
 		try {
-			const record = await pb.collection('apps').update(app.id, { title: form.title });
+			const record = await pb.collection('apps').update(app.id, { title: form.title })
 			loader.dismiss()
 			toast('App name changed', 'success')
 		} catch (err) {
@@ -266,7 +280,7 @@
 	const change_app_type = async () => {
 		const loader = await loadingBox('Changing app type...')
 		try {
-			const record = await pb.collection('apps').update(app.id, { type: form.type });
+			const record = await pb.collection('apps').update(app.id, { type: form.type })
 			loader.dismiss()
 			toast('App type changed', 'success')
 		} catch (err) {
@@ -461,107 +475,194 @@
 					<ion-label>Regions</ion-label>
 				</ion-col>
 			</ion-row>
-			<ion-row><ion-col>
+			<ion-row
+				><ion-col>
 					<ion-list>
-					<ion-accordion-group>
-						{#each machines as machine}
-							<ion-accordion value={machine.machine_id}>
-								<ion-item slot="header" color={machine.is_primary?'dark':'medium'}>
-									<ion-label><b>{machine.region}</b>: {getRegionName(machine.region || "")}</ion-label>									
-									<ion-icon slot="end" icon={machine.is_primary?star:ellipse} color={machine.state==='started'?'success':'warning'} />
-								</ion-item>
-								<div class="ion-padding" slot="content">
-										{#if !machine.is_primary}
-										<div class="ion-padding">
-											<ion-button size="small" expand="block" on:click={() => {rsync(machine)}} color="medium">
-												<ion-icon slot="start" icon={refreshOutline} />
-												Re-sync Data
-											</ion-button>
-										</div>
-										{/if}
+						<ion-accordion-group>
+							{#each machines as machine}
+								<ion-accordion value={machine.machine_id}>
 
-										<ion-item>
-											Config:
-											<ion-text slot="end">
-											{machine?.config?.guest?.cpus} {machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest?.memory_mb}mb ram
-											</ion-text>
+									<ion-item slot="header" color={machine.is_primary ? 'dark' : 'medium'}>
+										<ion-label
+											><b>{machine.region}</b>: {getRegionName(machine.region || '')}</ion-label
+										>
+										<ion-icon
+											slot="end"
+											icon={machine.is_primary ? star : ellipse}
+											color={machine.state === 'started' ? 'success' : 'warning'}
+										/>
+									</ion-item>
+
+									<div slot="content">
+									<ion-item style="--padding-start:0px;">
+										<div id="xxxxx" style="padding-top:40px;padding-bottom:100%;">
+											<ion-tabs style="padding-top: 0px;">
+												<!-- Tab views -->
+												<ion-tab tab="account">
+													<ion-item-divider color="light">
+														<ion-label>Configuration</ion-label>
+													</ion-item-divider>
+
+													<ion-grid style="width: 100%;">
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																<ion-label>Instance Type</ion-label>
+															</ion-col>
+															<ion-col>
+																<ion-label>{machine?.is_primary?"Primary":"Replica"}</ion-label>
+															</ion-col>
+														</ion-row>
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																Hardware
+															</ion-col>
+															<ion-col>
+																{machine?.config?.guest?.cpus}
+																{machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest
+																	?.memory_mb}mb ram
+	
+															</ion-col>
+														</ion-row>
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																<ion-label>PB Version</ion-label>
+															</ion-col>
+															<ion-col>
+																<ion-label>{machine?.image_ref?.tag}</ion-label>
+															</ion-col>
+														</ion-row>
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																<ion-label>State</ion-label>
+															</ion-col>
+															<ion-col>
+																<ion-label>{machine?.state}</ion-label>
+															</ion-col>
+														</ion-row>
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																<ion-label>Created</ion-label>
+															</ion-col>
+															<ion-col>
+																<ion-label>{machine?.created_at}</ion-label>
+															</ion-col>
+														</ion-row>
+														<ion-row>
+															<ion-col style="font-weight: bold;">
+																<ion-label>Updated</ion-label>
+															</ion-col>
+															<ion-col>
+																<ion-label>{machine?.updated_at}</ion-label>
+															</ion-col>
+													</ion-grid>
+												</ion-tab>
+												<ion-tab tab="contact">
+													<ion-item-divider color="light">
+														<ion-label>Events</ion-label>
+													</ion-item-divider>
+			
+													<ion-grid style="width: 100%;">
+														<ion-row style="width: 100%; font-weight: bold;">
+															<ion-col size={"2"}>
+																<ion-label>Src</ion-label>
+															</ion-col>
+															<ion-col size={"3"}>
+																<ion-label>Status</ion-label>
+															</ion-col>
+															<ion-col size={"2"}>
+																<ion-label>Evt</ion-label>
+															</ion-col>
+															<ion-col size={"5"}>
+																<ion-label>Timestamp</ion-label>
+															</ion-col>
+														</ion-row>
+														{#each machine?.events as event}
+															<ion-row style="width: 100%;">
+																<ion-col size={"2"}>
+																	<ion-label>{event?.source}</ion-label>
+																</ion-col>
+																<ion-col size={"3"}>
+																	<ion-label>{event?.status}</ion-label>
+																</ion-col>
+																<ion-col size={"2"}>
+																	<ion-label>{event?.type}</ion-label>
+																</ion-col>
+																<ion-col size={"5"}>
+																	<ion-label
+																		>{@html new Date(event?.timestamp || 0)
+																			.toLocaleString()
+																			}</ion-label
+																	>
+																</ion-col>
+															</ion-row>
+														{/each}
+													</ion-grid>
+			
+												</ion-tab>
+												<ion-tab tab="settings">
+													tab 3
+												</ion-tab>
+											  
+												<!-- Tab bar -->
+												<ion-tab-bar slot="top">
+												  <ion-tab-button tab="account">
+													<ion-icon icon={settingsOutline}></ion-icon>
+													<ion-label>Configuration</ion-label>
+												  </ion-tab-button>
+												  <ion-tab-button tab="contact">
+													<ion-icon icon={listOutline}></ion-icon>
+													<ion-label>Events</ion-label>
+												  </ion-tab-button>
+												  <ion-tab-button tab="settings">
+													<ion-icon icon={timeOutline}></ion-icon>
+													<ion-label>Streaming Backups</ion-label>
+												  </ion-tab-button>
+												</ion-tab-bar>
+											  </ion-tabs>
+										</div>
 										</ion-item>
-										<ion-item>
-											Pocketbase Version: 
-											<ion-text slot="end">{machine?.image_ref?.tag}</ion-text>
-										</ion-item>
-										<ion-item>
-											State:
-											<ion-text slot="end">{machine?.state}</ion-text>
-										</ion-item>
-										<ion-item>
-											Created:
-											<ion-text slot="end">{machine?.created_at}</ion-text>
-										</ion-item>
-										<ion-item>
-											Updated:
-											<ion-text slot="end">{machine?.updated_at}</ion-text>
-										</ion-item>
-										<ion-item-divider color="light">
-											<ion-label>Events</ion-label>
-										</ion-item-divider>
-										<!-- <ion-item> -->
-											<ion-grid style="width: 100%;">
-											<ion-row style="width: 100%; font-weight: bold;">
-												<ion-col>
-													<ion-label>Src</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>Status</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>Type</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>Timestamp</ion-label>
-												</ion-col>
-											</ion-row>
-											{#each machine?.events as event}
-											<ion-row style="width: 100%;">
-												<ion-col>
-													<ion-label>{event?.source}</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>{event?.status}</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>{event?.type}</ion-label>
-												</ion-col>
-												<ion-col>
-													<ion-label>{@html new Date((event?.timestamp || 0)).toLocaleString().replace(',','<br/>')}</ion-label>
-												</ion-col>
-											</ion-row>	
-											{/each}
-											</ion-grid>
-											{#if !machine.is_primary}
+										{#if !machine.is_primary}
 											<div class="ion-padding">
-												<ion-button size="small" expand="block" on:click={() => {removeMachine(machine)}} color="danger">
+												<ion-button
+													size="small"
+													expand="block"
+													on:click={() => {
+														rsync(machine)
+													}}
+													color="medium"
+												>
+													<ion-icon slot="start" icon={refreshOutline} />
+													Re-sync Data
+												</ion-button>
+												<ion-button
+													size="small"
+													expand="block"
+													on:click={() => {
+														removeMachine(machine)
+													}}
+													color="danger"
+												>
 													<ion-icon slot="start" icon={trashOutline} />
 													Remove Machine
 												</ion-button>
+
 											</div>
-											{/if}
-										<!-- </ion-item>								 -->
-								</div>
-							</ion-accordion>
-						  {/each}
-					  </ion-accordion-group>
-				<!-- </ion-col>
-			</ion-row></ion-grid> -->
-			</ion-list>
-			<ion-item>
-				<div style="width:100%;text-align:center;">
-					<ion-button size="small" expand="block" on:click={addNewRegion}>
-						<ion-icon slot="icon-only" icon={addOutline} />
-						&nbsp;Add New Region
-					</ion-button>
-				</div>
-			</ion-item>
-			</ion-col></ion-row></ion-grid>
+										{/if}
+									</div>
+								</ion-accordion>
+							{/each}
+						</ion-accordion-group>
+					</ion-list>
+					<ion-item>
+						<div style="width:100%;text-align:center;">
+							<ion-button size="small" expand="block" on:click={addNewRegion}>
+								<ion-icon slot="icon-only" icon={addOutline} />
+								&nbsp;Add New Region
+							</ion-button>
+						</div>
+					</ion-item>
+				</ion-col></ion-row
+			></ion-grid
+		>
 	</ion-content>
 </IonPage>
