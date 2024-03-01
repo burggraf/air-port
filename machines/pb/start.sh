@@ -24,6 +24,10 @@ if [ ! -f /pb/.ssh/ssh_host_rsa_key ]; then
     echo "Adding SSH keys to authorized_keys" >> /pb/log.txt
     cat /pb/.ssh/ssh_host_rsa_key.pub >> /pb/.ssh/authorized_keys
 fi
+if [ -f /pb/litestream.yml ]; then
+    echo "Starting litestream" >> /pb/log.txt
+    litestream replicate -config /pb/litestream.yml > /dev/null &
+fi
 
 /usr/sbin/sshd -f /pb/.ssh/sshd_config
 
