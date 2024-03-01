@@ -36,13 +36,5 @@ mkdir -p /pb/pb_hooks
 mkdir -p /pb/pb_migrations
 mkdir -p /pb/pb_public
 
-# /server & # runs on port 2222
-
-# /usr/sbin/sshd 
 wait -n
 exit $?
-# ssh -p 2222 -i /pb/.ssh/id_rsa root@<ipv6>
-# /usr/bin/rsync -avz6 -e "ssh -p 2222 -i /pb/.ssh/id_rsa" /pb/pb_public/ root@[<ipv6>]:/pb/pb_public/
-# dig TXT top3.nearest.of.air-port-dev.internal +short
-# returns
-# "ip=fdaa:2:80a6:a7b:167:a64e:c4a4:2,region=sjc,ping=0;ip=fdaa:2:80a6:a7b:251:820c:c983:2,region=ams,ping=135"
