@@ -1,5 +1,5 @@
 <script lang="ts">
-	const versions: string[] = ['0.21.3', '0.21.2', '0.21.1', '0.21.0']
+	const versions: string[] = ['0.22.0', '0.21.3', '0.21.2', '0.21.1', '0.21.0']
 	import '$styles/grid-styles.css'
 	//@ts-ignore
 	import * as wordSlug from 'word-slug'

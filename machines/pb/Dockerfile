@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM alpine:latest
 COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
-ARG PB_VERSION=0.21.3
+ARG PB_VERSION=0.22.0
 RUN apk update && apk add --no-cache \
     unzip \
     ca-certificates \
