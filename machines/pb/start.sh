@@ -36,5 +36,5 @@ mkdir -p /pb/pb_hooks
 mkdir -p /pb/pb_migrations
 mkdir -p /pb/pb_public
 
-wait -n
+wait
 exit $?
