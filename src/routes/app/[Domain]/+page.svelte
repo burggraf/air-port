@@ -14,6 +14,7 @@
 		checkmarkCircleOutline,
 		checkmarkOutline,
 		closeCircleOutline,
+		cloudUploadOutline,
 		codeDownloadSharp,
 		ellipse,
 		ellipseSharp,
@@ -41,7 +42,7 @@
 
 	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
-
+	let pitrService: string = 'hosted'
 	const ionViewWillEnter = async () => {
 		console.log('ionViewWillEnter...')
 		if (!$currentUser) {
@@ -344,7 +345,7 @@
 		</ion-toolbar>
 	</ion-header>
 	<ion-content class="ion-padding">
-		<ion-grid class="ion-padding Grid">
+		<ion-grid class="Grid">
 			<ion-row>
 				<ion-col>
 					<ion-label>App Title</ion-label>
@@ -486,10 +487,19 @@
 										<ion-label
 											><b>{machine.region}</b>: {getRegionName(machine.region || '')}</ion-label
 										>
+
+										<ion-icon
+											slot="end"
+											icon={cloudUploadOutline}
+											color="light"
+											style="padding-right: 5px;"
+										/>
+
 										<ion-icon
 											slot="end"
 											icon={machine.is_primary ? star : ellipse}
 											color={machine.state === 'started' ? 'success' : 'warning'}
+											style="padding-right: 5px;"
 										/>
 									</ion-item>
 
@@ -498,7 +508,7 @@
 										<div id="xxxxx" style="padding-top:40px;padding-bottom:100%;">
 											<ion-tabs style="padding-top: 0px;">
 												<!-- Tab views -->
-												<ion-tab tab="account">
+												<ion-tab tab="configuration" style="overflow-y: scroll;">
 													<ion-item-divider color="light">
 														<ion-label>Configuration</ion-label>
 													</ion-item-divider>
@@ -556,7 +566,7 @@
 															</ion-col>
 													</ion-grid>
 												</ion-tab>
-												<ion-tab tab="contact">
+												<ion-tab tab="events" style="overflow-y: scroll;">
 													<ion-item-divider color="light">
 														<ion-label>Events</ion-label>
 													</ion-item-divider>
@@ -599,21 +609,208 @@
 													</ion-grid>
 			
 												</ion-tab>
-												<ion-tab tab="settings">
-													tab 3
+												<ion-tab tab="pitr" style="overflow-y: scroll;">
+
+
+<ion-grid class="width-100">
+	<ion-row>
+		<ion-col size={"12"}>
+			<ion-grid class="width-100">
+				<ion-row>
+					<ion-col size={"auto"}>
+						<ion-label style="padding-top: 10px;font-weight: bold;">Streaming Enabled:</ion-label>
+					</ion-col>
+					<ion-col size={"auto"}>
+						<ion-toggle checked={false} disabled={false}>data.db</ion-toggle>
+					</ion-col>
+					<ion-col size={"auto"}>
+						<ion-toggle checked={false} disabled={false}>logs.db</ion-toggle>
+					</ion-col>
+				</ion-row>
+			</ion-grid>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col style="width: 100%;">
+			<ion-item-divider color="light">
+				Streaming Backup Service
+			</ion-item-divider>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-segment value={pitrService} on:ionChange={(e)=>{ pitrService = e.detail.value; }}>
+			<ion-segment-button value="hosted">
+				<ion-label>air-port service</ion-label>
+			</ion-segment-button>
+			<ion-segment-button value="custom">
+				<ion-label>custom settings</ion-label>
+			</ion-segment-button>
+		</ion-segment>
+	</ion-row>
+	{#if pitrService === "custom"}
+	<ion-row>
+		<ion-col size={"4"}>
+			<ion-label>Bucket</ion-label>
+		</ion-col>
+		<ion-col size={"8"}>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="bucket"
+			name="bucket"
+			placeholder="bucket"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.bucket}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col size={"4"}>
+			<ion-label>Path</ion-label>
+		</ion-col>
+		<ion-col size={"8"}>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="path"
+			name="path"
+			placeholder="path"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.path}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col size={"4"}>
+			<ion-label>Endpoint</ion-label>
+		</ion-col>
+		<ion-col size={"8"}>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="endpoint"
+			name="endpoint"
+			placeholder="endpoint"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.endpoint}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col size={"4"}>
+			<ion-label>Access Key</ion-label>
+		</ion-col>
+		<ion-col size={"8"}>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="access_key_id"
+			name="access_key_id"
+			placeholder="access_key_id"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.access_key_id}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col size={"4"}>
+			<ion-label>Secret Key</ion-label>
+		</ion-col>
+		<ion-col size={"8"}>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="secret_access_key"
+			name="secret_access_key"
+			placeholder="secret_access_key"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.secret_access_key}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+	{/if}
+	<ion-row>
+		<ion-col>
+			<ion-label>Retention (hrs)</ion-label>
+		</ion-col>
+		<ion-col class="ion-text-center">
+			<ion-label>Snapshot (hrs)</ion-label>
+		</ion-col>
+		<ion-col class="ion-text-right">
+			<ion-label>Sync (secs)</ion-label>
+		</ion-col>
+	</ion-row>
+	<ion-row>
+		<ion-col>
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="retention"
+			name="retention"
+			placeholder="retention (hrs)"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.retention}
+			debounce={500}>
+		</ion-col>
+		<ion-col class="ion-text-center">
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="snapshot_interval"
+			name="snapshot_interval"
+			placeholder="snapshot (hrs)"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.snapshot_interval}
+			debounce={500}> 
+		</ion-col>
+		<ion-col class="ion-text-right">
+			<ion-input
+			on:ionInput={handleChange}
+			class="loginInputBoxWithIcon"
+			type="text"
+			id="sync_interval"
+			name="sync_interval"
+			placeholder="sync (secs)"
+			style="--padding-start: 10px;--padding-end: 10px;"
+			value={machine?.pitr?.sync_interval}
+			debounce={500}>
+		</ion-col>
+	</ion-row>
+
+</ion-grid>
+<!-- `      - type: s3\n` +
+`        bucket: ${bucket || 'air-port-sjc'}\n` +
+`        path: ${path || 'litestream/'+Domain+'/data'}\n` +
+`        endpoint: ${endpoint}\n` +
+`        access-key-id: ${access_key_id || ''}\n` +
+`        secret-access-key: ${secret_access_key || ''}\n` +
+`        retention: ${retention}h\n` +
+`        snapshot-interval: ${snapshot_interval || '24'}h\n` +
+`        sync-interval: ${sync_interval || '30'}s\n` +
+`        force-path-style: ${typeof force_path_style === 'boolean' ? force_path_style || true}\n` -->
+											
+
+
 												</ion-tab>
 											  
 												<!-- Tab bar -->
 												<ion-tab-bar slot="top">
-												  <ion-tab-button tab="account">
+												  <ion-tab-button tab="configuration">
 													<ion-icon icon={settingsOutline}></ion-icon>
 													<ion-label>Configuration</ion-label>
 												  </ion-tab-button>
-												  <ion-tab-button tab="contact">
+												  <ion-tab-button tab="events">
 													<ion-icon icon={listOutline}></ion-icon>
 													<ion-label>Events</ion-label>
 												  </ion-tab-button>
-												  <ion-tab-button tab="settings">
+												  <ion-tab-button tab="pitr">
 													<ion-icon icon={timeOutline}></ion-icon>
 													<ion-label>Streaming Backups</ion-label>
 												  </ion-tab-button>
@@ -666,3 +863,14 @@
 		>
 	</ion-content>
 </IonPage>
+<style>
+	.loginInputBoxWithIcon {
+		height: 30px;
+	}
+	.width-100 {
+		width: 100%;
+	}
+	.width-100.ion-row {
+		width: 100%;
+	}
+</style>
