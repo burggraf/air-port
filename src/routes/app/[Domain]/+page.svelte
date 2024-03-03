@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { currentState } from './../../../services/state.service.ts';
+
+	//import { currentState } from './../../../services/state.service.ts';
 	import '$styles/grid-styles.css'
 	import IonPage from '$ionpage'
 	import { page } from '$app/stores'
@@ -19,6 +20,8 @@
 		codeDownloadSharp,
 		ellipse,
 		ellipseSharp,
+		eyeOutline,
+		eyeOffOutline,
 		listOutline,
 		personOutline,
 		refreshOutline,
@@ -743,18 +746,27 @@
 			<ion-input
 			on:ionChange={(e) => {setMachinePitr(e, machine, 'endpoint')}}
 			class="loginInputBoxWithIcon"
-			type="text"
+			type="password"
 			id="endpoint"
 			name="endpoint"
 			placeholder="endpoint"
 			style="--padding-start: 10px;--padding-end: 10px;"
 			value={machine?.metadata?.pitr?.endpoint}
 			debounce={500}>
+			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
+			on:click={(e) => {
+				console.log('e', e.target.parentElement)
+				const input = e.target.parentElement;
+				input.type = input.type === 'password' ? 'text' : 'password';
+				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
+			}}
+			></ion-icon>
 		</ion-col>
 	</ion-row>
 	<ion-row>
 		<ion-col size={"4"}>
 			<ion-label>Access Key</ion-label>
+			
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
@@ -767,6 +779,15 @@
 			style="--padding-start: 10px;--padding-end: 10px;"
 			value={machine?.metadata?.pitr?.access_key_id}
 			debounce={500}>
+			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
+			on:click={(e) => {
+				console.log('e', e.target.parentElement)
+				const input = e.target.parentElement;
+				input.type = input.type === 'password' ? 'text' : 'password';
+				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
+			}}
+			></ion-icon>
+			</ion-input>
 		</ion-col>
 	</ion-row>
 	<ion-row>
@@ -784,6 +805,14 @@
 			style="--padding-start: 10px;--padding-end: 10px;"
 			value={machine?.metadata?.pitr?.secret_access_key}
 			debounce={500}>
+			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
+			on:click={(e) => {
+				console.log('e', e.target.parentElement)
+				const input = e.target.parentElement;
+				input.type = input.type === 'password' ? 'text' : 'password';
+				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
+			}}
+			></ion-icon>
 		</ion-col>
 	</ion-row>
 	{/if}
