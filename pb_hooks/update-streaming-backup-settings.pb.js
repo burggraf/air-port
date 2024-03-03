@@ -61,9 +61,9 @@ routerAdd('POST', '/update-streaming-backup-settings', async (c) => {
 	console.log('update result', JSON.stringify(updateData))
 	const bucket = metadata.pitr?.bucket || 'air-port-sjc'
 	console.log('bucket', bucket)
-	const path = metadata.pitr?.path || 'litestream/'+Domain+'/data'
+	const path = metadata.pitr?.path || 'litestream/'+Domain
 	console.log('path', path)
-	const endpoint = metadata.pitr?.endpoint || 's3.amazonaws.com'
+	const endpoint = metadata.pitr?.endpoint || ''
 	console.log('endpoint', endpoint)
 	const access_key_id = metadata.pitr?.access_key_id || ''
 	console.log('access_key_id', access_key_id)
@@ -85,7 +85,7 @@ routerAdd('POST', '/update-streaming-backup-settings', async (c) => {
 		`    replicas:\n` +
 		`      - type: s3\n` +
 		`        bucket: ${bucket || 'air-port-sjc'}\n` +
-		`        path: ${path || 'litestream/'+Domain+'/data'}\n` +
+		`        path: ${path ? path + '/data' : 'litestream/'+Domain+'/data'}\n` +
 		`        endpoint: ${endpoint}\n` +
 		`        access-key-id: ${access_key_id || ''}\n` +
 		`        secret-access-key: ${secret_access_key || ''}\n` +
@@ -100,7 +100,7 @@ routerAdd('POST', '/update-streaming-backup-settings', async (c) => {
 		`    replicas:\n` +
 		`      - type: s3\n` +
 		`        bucket: ${bucket || 'air-port-sjc'}\n` +
-		`        path: ${path || 'litestream/'+Domain+'/logs'}\n` +
+		`        path: ${path ? path + '/logs' : 'litestream/'+Domain+'/logs'}\n` +
 		`        endpoint: ${endpoint}\n` +
 		`        access-key-id: ${access_key_id || ''}\n` +
 		`        secret-access-key: ${secret_access_key || ''}\n` +
