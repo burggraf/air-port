@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { currentState } from './../../../services/state.service.ts';
 	import '$styles/grid-styles.css'
 	import IonPage from '$ionpage'
 	import { page } from '$app/stores'
 	import * as allIonicIcons from 'ionicons/icons'
-	import type { AppsRecord, MachinesRecord } from '$models/pocketbase-types'
+	import type { AppsRecord, MachinesRecord, IObjectKeys } from '$models/pocketbase-types'
 	import { chooseRegion, getRegionName } from '$services/region.service'
 
 	import {
@@ -40,6 +41,8 @@
 
 	let machines: MachinesRecord[] = [] 
 	$: machines = [...machines];
+	let xmachinePitrChanged: IObjectKeys = {}
+	$: machinePitrChanged = xmachinePitrChanged
 
 	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
@@ -333,6 +336,23 @@
 		console.log('e.target.value', e.target.value)
 		console.log('newMachine.metadata.pitr', newMachine.metadata.pitr)
 		machines = newMachines;
+		if (machine.machine_id) {
+			machinePitrChanged[machine.machine_id] = true
+		}
+	}
+	const updateStreamingBackupSettings = async (machine: MachinesRecord) => {
+		console.log('updateStreamingBackupSettings machine:', machine)
+		const pitr = machine.metadata?.pitr;
+		const { data, error } = await pb.send(`/update-streaming-backup-settings`, {
+			method: 'POST',
+			body: {
+				machine_id: machine.machine_id,
+				pitr,
+			},
+		})
+		console.log('updateStreamingBackupSettings data, error', data, error)
+		// reset the button
+		machinePitrChanged[machine.machine_id || ""] = false
 	}
 
 </script>
@@ -631,6 +651,19 @@
 
 
 <ion-grid class="width-100">
+	{#if machinePitrChanged[machine.machine_id || ""]}
+	<ion-row>
+		<ion-col>
+			<ion-button
+				size="small"
+				expand="block"
+				on:click={() => {
+					updateStreamingBackupSettings(machine)
+				}}
+				color="danger">Update Streaming Backup Settings</ion-button>
+		</ion-col>
+	</ion-row>
+	{/if}
 	<ion-row>
 		<ion-col size={"12"}>
 			<ion-grid class="width-100">
@@ -639,10 +672,10 @@
 						<ion-label style="padding-top: 10px;font-weight: bold;">Streaming Enabled:</ion-label>
 					</ion-col>
 					<ion-col size={"auto"}>
-						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'data_enabled')}} checked={false} disabled={false}>data.db</ion-toggle>
+						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'data_enabled')}} checked={machine?.metadata?.pitr?.data_enabled} disabled={false}>data.db</ion-toggle>
 					</ion-col>
 					<ion-col size={"auto"}>
-						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'logs_enabled')}} checked={false} disabled={false}>logs.db</ion-toggle>
+						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'logs_enabled')}} checked={machine?.metadata?.pitr?.logs_enabled} disabled={false}>logs.db</ion-toggle>
 					</ion-col>
 				</ion-row>
 			</ion-grid>
@@ -727,7 +760,7 @@
 			<ion-input
 			on:ionChange={(e) => {setMachinePitr(e, machine, 'access_key_id')}}
 			class="loginInputBoxWithIcon"
-			type="text"
+			type="password"
 			id="access_key_id"
 			name="access_key_id"
 			placeholder="access_key_id"
@@ -744,7 +777,7 @@
 			<ion-input
 			on:ionChange={(e) => {setMachinePitr(e, machine, 'secret_access_key')}}
 			class="loginInputBoxWithIcon"
-			type="text"
+			type="password"
 			id="secret_access_key"
 			name="secret_access_key"
 			placeholder="secret_access_key"
