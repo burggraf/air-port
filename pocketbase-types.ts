@@ -5,10 +5,6 @@
 import type PocketBase from 'pocketbase'
 import type { RecordService } from 'pocketbase'
 
-export type IObjectKeys = {
-    [key: string]: any //string | number | object | undefined
-}
-
 export enum Collections {
 	Apps = "apps",
 	Machines = "machines",
@@ -39,7 +35,7 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
-export type AppsRecord = IObjectKeys & {
+export type AppsRecord = {
 	AppURL?: string
 	Deployed?: boolean
 	Domain?: string
@@ -54,7 +50,7 @@ export type AppsRecord = IObjectKeys & {
 	userid?: RecordIdString
 }
 
-export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = unknown, Tmetadata = unknown> = IObjectKeys & {
+export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = unknown, Tmetadata = unknown> = {
 	Domain?: string
 	config?: null | Tconfig
 	created_at?: IsoDateString
@@ -63,7 +59,7 @@ export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = un
 	instance_id?: string
 	is_primary?: boolean
 	machine_id?: string
-	metadata?: any
+	metadata?: null | Tmetadata
 	name?: string
 	private_ip?: string
 	region?: string

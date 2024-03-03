@@ -38,11 +38,11 @@
 	import { version } from '$app/environment'
 	import { checkDomainAvailability } from '$services/app-utils.service'
 
-	let machines: MachinesRecord[] = []
+	let machines: MachinesRecord[] = [] 
+	$: machines = [...machines];
 
 	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
-	let pitrService: string = 'hosted'
 	const ionViewWillEnter = async () => {
 		console.log('ionViewWillEnter...')
 		if (!$currentUser) {
@@ -317,6 +317,24 @@
 		const result = await dropdownmenu(e, items)
 		// console.log('result', result)
 	}
+	const setMachinePitr = (e: any, machine: MachinesRecord, key: string) => {
+		console.log('setMachinePitr', key, e.target.value)
+		const newMachines = [...machines];
+		const newMachine: any = newMachines.find((m) => m.machine_id === machine.machine_id)
+		console.log('newMachine', newMachine)
+		if (!newMachine.metadata) newMachine.metadata = {}
+		if (!newMachine.metadata.pitr) newMachine.metadata.pitr = {}
+		let value = e.target.value
+		if (typeof e.detail.checked === 'boolean') {
+			value = e.detail.checked
+		}
+		newMachine.metadata.pitr[key] = value
+		console.log('e', e)
+		console.log('e.target.value', e.target.value)
+		console.log('newMachine.metadata.pitr', newMachine.metadata.pitr)
+		machines = newMachines;
+	}
+
 </script>
 
 <IonPage {ionViewWillEnter}>
@@ -621,10 +639,10 @@
 						<ion-label style="padding-top: 10px;font-weight: bold;">Streaming Enabled:</ion-label>
 					</ion-col>
 					<ion-col size={"auto"}>
-						<ion-toggle checked={false} disabled={false}>data.db</ion-toggle>
+						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'data_enabled')}} checked={false} disabled={false}>data.db</ion-toggle>
 					</ion-col>
 					<ion-col size={"auto"}>
-						<ion-toggle checked={false} disabled={false}>logs.db</ion-toggle>
+						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'logs_enabled')}} checked={false} disabled={false}>logs.db</ion-toggle>
 					</ion-col>
 				</ion-row>
 			</ion-grid>
@@ -638,7 +656,9 @@
 		</ion-col>
 	</ion-row>
 	<ion-row>
-		<ion-segment value={pitrService} on:ionChange={(e)=>{ pitrService = e.detail.value; }}>
+		<ion-segment 
+			value={machine.metadata?.pitr?.service || 'hosted'} 
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'service')}}>
 			<ion-segment-button value="hosted">
 				<ion-label>air-port service</ion-label>
 			</ion-segment-button>
@@ -647,21 +667,21 @@
 			</ion-segment-button>
 		</ion-segment>
 	</ion-row>
-	{#if pitrService === "custom"}
+	{#if machine.metadata?.pitr?.service === 'custom'}
 	<ion-row>
 		<ion-col size={"4"}>
 			<ion-label>Bucket</ion-label>
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'bucket')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="bucket"
 			name="bucket"
 			placeholder="bucket"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.bucket}
+			value={machine?.metadata?.pitr?.bucket}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
@@ -671,14 +691,14 @@
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'path')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="path"
 			name="path"
 			placeholder="path"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.path}
+			value={machine?.metadat?.pitr?.path}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
@@ -688,14 +708,14 @@
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'endpoint')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="endpoint"
 			name="endpoint"
 			placeholder="endpoint"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.endpoint}
+			value={machine?.metadata?.pitr?.endpoint}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
@@ -705,14 +725,14 @@
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'access_key_id')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="access_key_id"
 			name="access_key_id"
 			placeholder="access_key_id"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.access_key_id}
+			value={machine?.metadata?.pitr?.access_key_id}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
@@ -722,14 +742,14 @@
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'secret_access_key')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="secret_access_key"
 			name="secret_access_key"
 			placeholder="secret_access_key"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.secret_access_key}
+			value={machine?.metadata?.pitr?.secret_access_key}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
@@ -748,38 +768,38 @@
 	<ion-row>
 		<ion-col>
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'retention')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="retention"
 			name="retention"
 			placeholder="retention (hrs)"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.retention}
+			value={machine?.metadata?.pitr?.retention}
 			debounce={500}>
 		</ion-col>
 		<ion-col class="ion-text-center">
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'snapshot_interval')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="snapshot_interval"
 			name="snapshot_interval"
 			placeholder="snapshot (hrs)"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.snapshot_interval}
+			value={machine?.metadata?.pitr?.snapshot_interval}
 			debounce={500}> 
 		</ion-col>
 		<ion-col class="ion-text-right">
 			<ion-input
-			on:ionInput={handleChange}
+			on:ionChange={(e) => {setMachinePitr(e, machine, 'sync_interval')}}
 			class="loginInputBoxWithIcon"
 			type="text"
 			id="sync_interval"
 			name="sync_interval"
 			placeholder="sync (secs)"
 			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.pitr?.sync_interval}
+			value={machine?.metadata?.pitr?.sync_interval}
 			debounce={500}>
 		</ion-col>
 	</ion-row>
