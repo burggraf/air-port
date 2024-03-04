@@ -346,6 +346,8 @@
 	const updateStreamingBackupSettings = async (machine: MachinesRecord) => {
 		console.log('updateStreamingBackupSettings machine:', machine)
 		const pitr = machine.metadata?.pitr;
+		console.log('updateStreamingBackupSettings pitr:', pitr)
+		console.log('machine_id:', machine.machine_id)
 		const { data, error } = await pb.send(`/update-streaming-backup-settings`, {
 			method: 'POST',
 			body: {

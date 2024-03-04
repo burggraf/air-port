@@ -60,6 +60,7 @@ const run = async (Domain, machine_id, private_ip, command_to_run) => {
         // console.log('***********************************')
         // console.log(cmd)
         // console.log('***********************************')
+        console.log('running command now')
         output = String.fromCharCode(...cmd.output())
         // console.log('***********************************')
         // console.log('runRemote 2: fly ssh console output: ')
