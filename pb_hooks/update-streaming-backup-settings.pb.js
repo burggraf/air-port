@@ -96,6 +96,16 @@ routerAdd('POST', '/update-streaming-backup-settings', async (c) => {
 		cmd
 	)
 	if (putConfigError) return c.json(200, { data: null, error: putConfigError })
+	// restart litestream
+	cmd = `/bin/sh -c "/start_litestream.sh"`
+	const { data: restartData, error: restartError } = await runRemote(
+		Domain,
+		machine_id,
+		private_ip,
+		cmd
+	)
+	if (restartError) return c.json(200, { data: null, error: restartError })
+
 	return c.json(200, { data: 'OK', error: null })
 })
 
