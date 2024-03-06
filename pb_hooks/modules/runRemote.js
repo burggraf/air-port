@@ -28,7 +28,7 @@ const startMachine = async (Domain, machine_id) => {
 
 }
 const run = async (Domain, machine_id, private_ip, command_to_run) => {
-    console.log('run...')
+    console.log('run...', Domain, machine_id, private_ip, command_to_run)
     const config = require(`${__hooks}/config.json`)
     let cmd;
     let output;

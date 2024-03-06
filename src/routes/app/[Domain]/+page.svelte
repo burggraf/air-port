@@ -412,6 +412,33 @@
 		loader.dismiss()
 		return walData
 	}
+	const restoreFile = async (machine: MachinesRecord, generation_id: string, timestamp: string, restoreDBType: string ) => {
+		// litestream restore 
+		// 		-config /pb/litestream.yml 
+		//		-o /pb/tmp001.db 
+		// 		-generation xxxxxxxxxxxx 
+		// 		-timestamp 2024-03-04T13:10:56Z 
+		//		/pb/pb_data/data.db
+		console.log('restoreFile', generation_id, timestamp, restoreDBType)
+		const loader = await loadingBox(`Restoring ${timestamp}`)
+		const { data: restoreData, error: restoreError } = 
+			await pb.send(`/get-litestream-file`, {
+						method: 'POST',
+						body: {
+							Domain: machine.Domain,
+							machine_id: machine.machine_id,
+							private_ip: machine.private_ip,
+							restoreDBType: restoreDBType,
+							generation_id: generation_id,
+							timestamp: timestamp
+						},
+					})
+		console.log('restoreError', restoreError)
+		console.log('restoreData', restoreData)
+		// wal = walData
+		loader.dismiss()
+
+	}
 
 </script>
 
@@ -975,23 +1002,26 @@
 			const el = document.getElementById(e.detail.value + '-content')
 			if (el) {
 				for (let i = 0; i < wal.length; i++) {
-					const item = document.createElement('ion-item')
-					item.innerHTML = "restore backup from: " + wal[i].created
-					el.appendChild(item)
+					const btn = document.createElement('ion-button')
+					//btn.size = "small"
+					btn.expand = "block"
+					btn.color = "primary"
+					btn.classList.add("restoreButton")
+					btn.textContent = "restore backup point: " + wal[i].created
+					btn.onclick = async () => { 
+						restoreFile(machine, e.detail.value, wal[i].created, restoreDBType)
+					}
+					el.appendChild(btn)
 				}
-			}
-			
+			}			
 		}}>
 		{#each generations as generation}
 			
 			<ion-accordion id={generation.generation} value={generation.generation}>
 				<ion-item slot="header">
-					{generation.start}
+					Generation: {generation.start}
 				</ion-item>
 				<div slot="content" id={generation.generation + '-content'}>
-					<!-- <ion-button size="small" slot="end" on:click={
-						loadPitrWal(machine, restoreDBType, generation.generation)
-					}>see backups</ion-button> -->
 				</div>
 			</ion-accordion>
 		{/each}
@@ -1086,5 +1116,8 @@
 	}
 	.width-100.ion-row {
 		width: 100%;
+	}
+	.restoreButton {
+		padding: 10px;
 	}
 </style>
