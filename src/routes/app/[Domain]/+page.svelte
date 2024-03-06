@@ -689,11 +689,11 @@
 	<ion-row>
 		<ion-col style="width: 100%;">
 			<ion-item-divider color="light">
-				Streaming Backup Service
+				Storage Service
 			</ion-item-divider>
 		</ion-col>
 	</ion-row>
-	<ion-row>
+	<!-- <ion-row>
 		<ion-segment 
 			value={machine.metadata?.pitr?.service || 'hosted'} 
 			on:ionChange={(e) => {setMachinePitr(e, machine, 'service')}}>
@@ -704,8 +704,8 @@
 				<ion-label>custom settings</ion-label>
 			</ion-segment-button>
 		</ion-segment>
-	</ion-row>
-	{#if machine.metadata?.pitr?.service === 'custom'}
+	</ion-row> -->
+	<!-- {#if machine.metadata?.pitr?.service === 'custom'} -->
 	<ion-row>
 		<ion-col size={"4"}>
 			<ion-label>Bucket</ion-label>
@@ -725,7 +725,7 @@
 	</ion-row>
 	<ion-row>
 		<ion-col size={"4"}>
-			<ion-label>Path</ion-label>
+			<ion-label>Base Path</ion-label>
 		</ion-col>
 		<ion-col size={"8"}>
 			<ion-input
@@ -817,7 +817,7 @@
 			></ion-icon>
 		</ion-col>
 	</ion-row>
-	{/if}
+	<!-- {/if} -->
 	<ion-row>
 		<ion-col>
 			<ion-label>Retention (hrs)</ion-label>
