@@ -46,7 +46,7 @@
 	$: machines = [...machines];
 	let xmachinePitrChanged: IObjectKeys = {}
 	$: machinePitrChanged = xmachinePitrChanged
-
+	let pitrMode = 'configure';
 	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
 	const ionViewWillEnter = async () => {
@@ -670,6 +670,19 @@
 	</ion-row>
 	{/if}
 	<ion-row>
+		<ion-segment 
+			value={pitrMode} 
+			on:ionChange={(e) => {pitrMode = (pitrMode === 'configure') ? 'restore' : 'configure'}}>
+			<ion-segment-button value="configure">
+				<ion-label>Configure</ion-label>
+			</ion-segment-button>
+			<ion-segment-button value="restore">
+				<ion-label>Restore</ion-label>
+			</ion-segment-button>
+		</ion-segment>
+	</ion-row>
+	{#if pitrMode === 'configure'}
+	<ion-row>
 		<ion-col size={"12"}>
 			<ion-grid class="width-100">
 				<ion-row>
@@ -693,19 +706,6 @@
 			</ion-item-divider>
 		</ion-col>
 	</ion-row>
-	<!-- <ion-row>
-		<ion-segment 
-			value={machine.metadata?.pitr?.service || 'hosted'} 
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'service')}}>
-			<ion-segment-button value="hosted">
-				<ion-label>air-port service</ion-label>
-			</ion-segment-button>
-			<ion-segment-button value="custom">
-				<ion-label>custom settings</ion-label>
-			</ion-segment-button>
-		</ion-segment>
-	</ion-row> -->
-	<!-- {#if machine.metadata?.pitr?.service === 'custom'} -->
 	<ion-row>
 		<ion-col size={"4"}>
 			<ion-label>Bucket</ion-label>
@@ -817,7 +817,6 @@
 			></ion-icon>
 		</ion-col>
 	</ion-row>
-	<!-- {/if} -->
 	<ion-row>
 		<ion-col>
 			<ion-label>Retention (hrs)</ion-label>
@@ -867,6 +866,7 @@
 			debounce={500}>
 		</ion-col>
 	</ion-row>
+	{/if}
 
 </ion-grid>
 <!-- `      - type: s3\n` +
