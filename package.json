@@ -64,7 +64,7 @@
     "momentjs": "^2.0.0",
     "monaco-editor": "^0.45.0",
     "ol": "^8.2.0",
-    "pocketbase": "^0.21.0",
+    "pocketbase": "^0.21.1",
     "pptxgenjs": "^3.11.0",
     "svelte": "^3.59.1",
     "swiper": "^9.2.4",
