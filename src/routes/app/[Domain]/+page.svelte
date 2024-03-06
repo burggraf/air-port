@@ -47,6 +47,11 @@
 	let xmachinePitrChanged: IObjectKeys = {}
 	$: machinePitrChanged = xmachinePitrChanged
 	let pitrMode = 'configure';
+	let restoreDBType = 'data';
+	
+	let generations: any[] = []
+	let wal: any[] = []
+
 	let app: AppsRecord
 	let form = { title: '', Domain: '', type: '' }
 	const ionViewWillEnter = async () => {
@@ -358,6 +363,54 @@
 		console.log('updateStreamingBackupSettings data, error', data, error)
 		// reset the button
 		machinePitrChanged[machine.machine_id || ""] = false
+	}
+	const togglePitrMode = (machine: MachinesRecord) => {
+		console.log('togglePitrMode: machine', machine)
+		if (pitrMode === 'configure') {
+			pitrMode = 'restore'
+		} else {
+			pitrMode = 'configure'
+		}
+	}
+	const loadPitrGenerations = async (machine: MachinesRecord, restoreDBType: string) => {
+		console.log('loadPitrGenerations')
+		const loader = await loadingBox('Loading backup generations...')
+		generations = []
+		const { data: generationsData, error: generationsError } = 
+			await pb.send(`/get-litestream-generations`, {
+						method: 'POST',
+						body: {
+							Domain: machine.Domain,
+							machine_id: machine.machine_id,
+							private_ip: machine.private_ip,
+							restoreDBType: restoreDBType,
+						},
+					})
+		console.log('generationsError', generationsError)
+		console.log('generationsData', generationsData)
+		generations = generationsData
+		loader.dismiss()
+	}
+	const loadPitrWal = async (machine: MachinesRecord, restoreDBType: string, generation_id: string) => {
+		console.log('loadPitrWal')
+		const loader = await loadingBox('Loading backup files...')
+		wal = []
+		const { data: walData, error: walError } = 
+			await pb.send(`/get-litestream-wal`, {
+						method: 'POST',
+						body: {
+							Domain: machine.Domain,
+							machine_id: machine.machine_id,
+							private_ip: machine.private_ip,
+							restoreDBType: restoreDBType,
+							generation_id: generation_id,
+						},
+					})
+		console.log('walError', walError)
+		console.log('walData', walData)
+		// wal = walData
+		loader.dismiss()
+		return walData
 	}
 
 </script>
@@ -672,7 +725,7 @@
 	<ion-row>
 		<ion-segment 
 			value={pitrMode} 
-			on:ionChange={(e) => {pitrMode = (pitrMode === 'configure') ? 'restore' : 'configure'}}>
+			on:ionChange={() => {togglePitrMode(machine)}}>
 			<ion-segment-button value="configure">
 				<ion-label>Configure</ion-label>
 			</ion-segment-button>
@@ -866,6 +919,83 @@
 			debounce={500}>
 		</ion-col>
 	</ion-row>
+	{/if}
+	{#if pitrMode === 'restore'}
+	<ion-item-divider color="light">
+		<ion-label>Restore database:</ion-label>
+	</ion-item-divider>
+	
+	<ion-row>
+		<ion-segment 
+			value={restoreDBType} 
+			on:ionChange={(e) => { restoreDBType = e.detail.value}}>
+			<ion-segment-button value="data">
+				<ion-label>data.db</ion-label>
+			</ion-segment-button>
+			<ion-segment-button value="logs">
+				<ion-label>logs.db</ion-label>
+			</ion-segment-button>
+		</ion-segment>
+	</ion-row>
+	<ion-button size="small" expand="block" on:click={()=>{
+		loadPitrGenerations(machine, restoreDBType);
+	}}>view backup generations for {restoreDBType}.db</ion-button>
+	
+
+	<!-- <ion-accordion-group>
+		{#each machines as machine}
+			<ion-accordion value={machine.machine_id}> -->
+<!--
+<ion-accordion-group>
+  <ion-accordion value="first">
+    <ion-item slot="header" color="light">
+      <ion-label>First Accordion</ion-label>
+    </ion-item>
+    <div class="ion-padding" slot="content">First Content</div>
+  </ion-accordion>
+  <ion-accordion value="second">
+    <ion-item slot="header" color="light">
+      <ion-label>Second Accordion</ion-label>
+    </ion-item>
+    <div class="ion-padding" slot="content">Second Content</div>
+  </ion-accordion>
+  <ion-accordion value="third">
+    <ion-item slot="header" color="light">
+      <ion-label>Third Accordion</ion-label>
+    </ion-item>
+    <div class="ion-padding" slot="content">Third Content</div>
+  </ion-accordion>
+</ion-accordion-group>	
+-->
+				
+		<ion-accordion-group on:ionChange={async (e)=>{
+			console.log('accordion-group ionChange', e)
+			const wal = await loadPitrWal(machine, restoreDBType, e.detail.value)
+			console.log('wal', wal)
+			const el = document.getElementById(e.detail.value + '-content')
+			if (el) {
+				for (let i = 0; i < wal.length; i++) {
+					const item = document.createElement('ion-item')
+					item.innerHTML = "restore backup from: " + wal[i].created
+					el.appendChild(item)
+				}
+			}
+			
+		}}>
+		{#each generations as generation}
+			
+			<ion-accordion id={generation.generation} value={generation.generation}>
+				<ion-item slot="header">
+					{generation.start}
+				</ion-item>
+				<div slot="content" id={generation.generation + '-content'}>
+					<!-- <ion-button size="small" slot="end" on:click={
+						loadPitrWal(machine, restoreDBType, generation.generation)
+					}>see backups</ion-button> -->
+				</div>
+			</ion-accordion>
+		{/each}
+		</ion-accordion-group>
 	{/if}
 
 </ion-grid>

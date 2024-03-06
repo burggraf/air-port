@@ -1,70 +1,76 @@
 routerAdd('POST', '/get-litestream-generations', async (c) => {
-	// read the body via the cached request object
-	// (this method is commonly used in hook handlers because it allows reading the body more than once)
+	const { select, execute } = require(`${__hooks}/modules/sql.js`)
+	const { runRemote } = require(`${__hooks}/modules/runRemote.js`)
+
 	const data = $apis.requestInfo(c).data
 
 	const info = $apis.requestInfo(c)
-	// const admin  = info.admin;      // empty if not authenticated as admin
 	const user = info.authRecord // empty if not authenticated as regular auth record
-	// console.log('info', JSON.stringify(info, null, 2));
-	// console.log('admin', JSON.stringify(admin, null, 2));
 	if (!user) {
 		return c.json(200, { data: null, error: 'not logged in' })
 	}
-	if (!data?.instance_id) {
-		return c.json(200, { data: null, error: 'instance_id required' })
-	}
-	if (!data?.db || (data?.db !== 'data' && data?.db !== 'logs')) {
-		return c.json(200, { data: null, error: 'db required (must be: data or logs)' })
-	}
+	/**
+		Domain: machine.Domain,
+		machine_id: machine.machine_id,
+		primary_ip: machine.private_ip,
+		restoreDBType: restoreDBType,
+	 */
+	if (!data?.Domain) return c.json(200, { data: null, error: 'Domain is required' })
+	if (!data?.machine_id) return c.json(200, { data: null, error: 'machine_id is required' })
+	if (!data?.private_ip) return c.json(200, { data: null, error: 'private_ip is required' })
+	if (!data?.restoreDBType) return c.json(200, { data: null, error: 'restoreDBType is required' })
+	const Domain = data.Domain
+	const machine_id = data.machine_id
+	const private_ip = data.private_ip
+	const restoreDBType = data.restoreDBType
+	// get owner of machine
+	const { data: machineData, error: machineDataError } = select(
+		{ userid: ''},
+		`select userid from machines where machine_id = '${machine_id}'`
+	)
+	if (machineDataError) return c.json(200, { data: null, error: 'error getting machine data' })
+	if (machineData.length !== 1) return c.json(200, { data: null, error: 'machine not found' })
+	if (machineData[0].userid !== user.id) return c.json(200, { data: null, error: 'not your project' })
+
+	console.log(`litestream generations -config /pb/litestream.yml /pb/pb_data/${restoreDBType}.db`);
 	try {
-		// get the port of the instance_id
-		const instance = arrayOf(
-			new DynamicModel({
-				port: '',
-				owner: '',
-				ownertype: '',
-				site_domain: '',
-			})
+		console.log('RUN 01', Domain, machine_id, private_ip, restoreDBType)
+		const { data: generationsData, error: generationsError } = await runRemote(
+			Domain,
+			machine_id,
+			private_ip,
+			`litestream generations -config /pb/litestream.yml /pb/pb_data/${restoreDBType}.db`
 		)
-		$app
-			.dao()
-			.db()
-			.newQuery(
-				`select port, owner, ownertype, site_domain from instance_view where id = '${data?.instance_id}'`
-			)
-			.all(instance) // throw an error on db failure
-		if (instance.length === 0) {
-			return c.json(200, { data: null, error: 'instance_id not found' })
+		if (generationsError) return c.json(200, { data: null, error: generationsError })
+		const generations = generationsData.split('\n');
+		for (let i = 0; i < generations.length; i++) {
+			generations[i] = generations[i].replace(/\s+/g,' ').split(' ')
+			if (generations[i].length !== 5) {
+				generations.splice(i, 1)
+			}
 		}
-		if (instance[0].owner !== user.id) {
-			return c.json(200, { data: null, error: 'not your instance_id' })
+		// remove header
+		let output = []
+		for (let i = 1; i < generations.length; i++) {
+			//name  generation        lag        start                 end
+			output.push({
+				name: generations[i][0],
+				generation: generations[i][1],
+				lag: generations[i][2],
+				start: generations[i][3],
+				end: generations[i][4]
+			})
 		}
-		// get the id of the newly inserted project
-		const res = $http.send({
-			url: `http://${instance[0]?.site_domain}:5000/getlitestreamgenerations`,
-			method: 'POST',
-			body: JSON.stringify({
-				db: data?.db,
-				port: instance[0]?.port.toString(),
-			}),
-			headers: {
-				'content-type': 'application/json',
-				Authorization: 'your_predefined_auth_token',
-			},
-			timeout: 120, // in seconds
-		})
-		console.log('res', JSON.stringify(res, null, 2))
-		if (res.json?.error) {
-			return c.json(200, { data: null, error: res.json.error })
-		} else {
-			return c.json(200, { data: res?.json?.data, error: null })
-		}
-	} catch (instanceError) {
-		console.log('instanceError', instanceError)
-		const error_to_return = instanceError?.value?.error() || instanceError
-		return c.json(200, { data: null, error: error_to_return })
+		// sort on "start" as a string value
+		output.sort((a, b) => a.start.localeCompare(b.start));
+		// console.log('NEW output', JSON.stringify(output, null, 2))	
+		return c.json(200, { data: output, error: null })	
+
+	} catch (error) {
+		console.log('try/catch error', JSON.stringify(error))
+		return c.json(200, { data: null, error: error })
 	}
+
 })
 
 
