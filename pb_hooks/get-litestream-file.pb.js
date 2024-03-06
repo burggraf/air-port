@@ -43,7 +43,7 @@ routerAdd('POST', '/get-litestream-file', async (c) => {
 			Domain,
 			machine_id,
 			private_ip,
-			`litestream restore -config /pb/litestream.yml -o /pb/pb_data/backups/PITR-${timestamp}.db -generation ${generation_id} -timestamp ${timestamp} /pb/pb_data/${restoreDBType}.db`
+			`litestream restore -config /pb/litestream.yml -o /pb/pb_data/backups/PITR-${timestamp}.${restoreDBType}.db -generation ${generation_id} -timestamp ${timestamp} /pb/pb_data/${restoreDBType}.db`
 		)
 		console.log('restoreData', JSON.stringify(restoreData, null, 2))
 		/*
