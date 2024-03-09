@@ -56,7 +56,7 @@ const updateStatus = (Domain, userid, is_primary=false) => {
 						'${JSON.stringify(machine.config).replace(/\'/g,"''") || ""}',
 						'${JSON.stringify(machine.events).replace(/\'/g,"''") || ""}',
 						'${userid || ""}',
-						'${Domain || ""}', 'false')`;
+						'${Domain || ""}', ${is_primary? 'true' : 'false'})`;
 					const { data: insertMachineData, error: insertMachineError } = execute( sql );
 					if (insertMachineError) return { data: null, error: insertMachineError };	
 				} else {
