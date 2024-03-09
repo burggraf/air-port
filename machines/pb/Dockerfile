@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM alpine:latest
 COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
-ARG PB_VERSION=0.22.0
+ARG PB_VERSION=0.22.2
 RUN apk update && apk add --no-cache \
     unzip \
     ca-certificates \
@@ -26,6 +26,8 @@ RUN unzip /tmp/pb.zip -d /
 RUN rm /CHANGELOG.md
 RUN rm /LICENSE.md
 RUN rm /tmp/pb.zip
+RUN adduser -h /pb/home/user -D user
+RUN mkdir -p /pb/home/user/.ssh
 COPY ./marmot .
 #COPY ./nats-server .
 COPY ./nats .

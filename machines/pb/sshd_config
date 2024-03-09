@@ -38,7 +38,7 @@ HostKey /pb/.ssh/ssh_host_ed25519_key
 #MaxAuthTries 6
 #MaxSessions 10
 
-#PubkeyAuthentication yes
+PubkeyAuthentication yes
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
@@ -85,11 +85,11 @@ AuthorizedKeysFile	/pb/.ssh/authorized_keys
 # and KbdInteractiveAuthentication to 'no'.
 #UsePAM no
 
-#AllowAgentForwarding yes
+AllowAgentForwarding yes
 # Feel free to re-enable these if your use case requires them.
-AllowTcpForwarding no
-GatewayPorts no
-X11Forwarding no
+AllowTcpForwarding yes
+GatewayPorts yes
+X11Forwarding yes
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
@@ -111,7 +111,9 @@ X11Forwarding no
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	internal-sftp
+#Subsystem	sftp	internal-sftp -l DEBUG3
+Subsystem	sftp	/usr/lib/ssh/sftp-server
+#Subsystem	sftp	 /usr/lib/ssh/sftp-server -l INFO -l DEBUG3 -l /pb/sftp.log
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
@@ -120,3 +122,7 @@ Subsystem	sftp	internal-sftp
 #	PermitTTY no
 #	ForceCommand cvs server
 
+#Match User user
+#    PasswordAuthentication no
+#    PubkeyAuthentication yes
+#    AuthorizedKeysFile /pb/.ssh/authorized_keys
