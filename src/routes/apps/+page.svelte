@@ -203,6 +203,32 @@
 						</ion-card-content>
 					</ion-card>
 				{/each}
+				<ion-card style="max-width: 400px;">
+					<!-- <ion-card-header>
+						<ion-card-title>Legend</ion-card-title>
+					</ion-card-header> -->
+					<ion-card-content>
+						<ion-list>
+							<ion-item-divider>Legend</ion-item-divider>
+							<ion-item  lines="none">
+								<ion-icon slot="start" icon={star} color="success" />
+								Primary (active)
+							</ion-item>
+							<ion-item  lines="none">
+								<ion-icon slot="start" icon={star} color="warning" />
+								Primary (standby)
+							</ion-item>
+							<ion-item  lines="none">
+								<ion-icon slot="start" icon={ellipse} color="success" />
+								Replica (active)
+							</ion-item>
+							<ion-item  lines="none">
+								<ion-icon slot="start" icon={ellipse} color="warning" />
+								Replica (standby)
+							</ion-item>
+						</ion-list>
+					</ion-card-content>
+				</ion-card>
 			</div>
 		</ion-list>
 		{/if}
