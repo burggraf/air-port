@@ -4,7 +4,7 @@
 	import IonPage from '$ionpage'
 	import { page } from '$app/stores'
 	import * as allIonicIcons from 'ionicons/icons'
-	import type { AppsRecord, MachinesRecord, IObjectKeys } from '$models/pocketbase-types'
+	import type { AppsRecord, MachinesRecord, IObjectKeys, MachineKeyRecord } from '$models/pocketbase-types'
 	import { chooseRegion, getRegionName } from '$services/region.service'
 	import Keys from '$components/Keys.svelte'
 
@@ -46,13 +46,14 @@
 	import { version } from '$app/environment'
 	import { checkDomainAvailability } from '$services/app-utils.service'
 
-	let machines: MachinesRecord[] = [] 
-	$: machines = [...machines];
+	let machinekeys: MachineKeyRecord[] = []
+	let machines: MachinesRecord[] = []
+	$: machines = [...machines]
 	let xmachinePitrChanged: IObjectKeys = {}
 	$: machinePitrChanged = xmachinePitrChanged
-	let pitrMode = 'configure';
-	let restoreDBType = 'data';
-	
+	let pitrMode = 'configure'
+	let restoreDBType = 'data'
+
 	let generations: any[] = []
 	let wal: any[] = []
 
@@ -83,11 +84,19 @@
 		if (app.Domain) {
 			// loader.dismiss()
 			// loader = await loadingBox('Loading machine(s) info...')
+			console.log('*** loading machines')
 			machines = await pb.collection('machines').getFullList({
 				filter: `Domain = '${app.Domain}'`,
 				// sort: 'name,type,site_name,instance_status',
 			})
+			console.log('*** loading machinekeys')
+			machinekeys = await pb.collection('machine_key').getFullList({
+			})
+			for (let i = 0; i < machines.length; i++) {
+				machines[i].keys = machinekeys.filter((mk) => mk.machine === machines[i].id)
+			}
 			console.log('machines', machines)
+			console.log('machinekeys', machinekeys)
 			// loader.dismiss()
 		}
 
@@ -334,7 +343,7 @@
 	}
 	const setMachinePitr = (e: any, machine: MachinesRecord, key: string) => {
 		console.log('setMachinePitr', key, e.target.value)
-		const newMachines = [...machines];
+		const newMachines = [...machines]
 		const newMachine: any = newMachines.find((m) => m.machine_id === machine.machine_id)
 		console.log('newMachine', newMachine)
 		if (!newMachine.metadata) newMachine.metadata = {}
@@ -347,14 +356,14 @@
 		console.log('e', e)
 		console.log('e.target.value', e.target.value)
 		console.log('newMachine.metadata.pitr', newMachine.metadata.pitr)
-		machines = newMachines;
+		machines = newMachines
 		if (machine.machine_id) {
 			machinePitrChanged[machine.machine_id] = true
 		}
 	}
 	const updateStreamingBackupSettings = async (machine: MachinesRecord) => {
 		console.log('updateStreamingBackupSettings machine:', machine)
-		const pitr = machine.metadata?.pitr;
+		const pitr = machine.metadata?.pitr
 		console.log('updateStreamingBackupSettings pitr:', pitr)
 		console.log('machine_id:', machine.machine_id)
 		const { data, error } = await pb.send(`/update-streaming-backup-settings`, {
@@ -366,7 +375,7 @@
 		})
 		console.log('updateStreamingBackupSettings data, error', data, error)
 		// reset the button
-		machinePitrChanged[machine.machine_id || ""] = false
+		machinePitrChanged[machine.machine_id || ''] = false
 	}
 	const togglePitrMode = (machine: MachinesRecord) => {
 		console.log('togglePitrMode: machine', machine)
@@ -380,73 +389,80 @@
 		console.log('loadPitrGenerations')
 		const loader = await loadingBox('Loading backup generations...')
 		generations = []
-		const { data: generationsData, error: generationsError } = 
-			await pb.send(`/get-litestream-generations`, {
-						method: 'POST',
-						body: {
-							Domain: machine.Domain,
-							machine_id: machine.machine_id,
-							private_ip: machine.private_ip,
-							restoreDBType: restoreDBType,
-						},
-					})
+		const { data: generationsData, error: generationsError } = await pb.send(
+			`/get-litestream-generations`,
+			{
+				method: 'POST',
+				body: {
+					Domain: machine.Domain,
+					machine_id: machine.machine_id,
+					private_ip: machine.private_ip,
+					restoreDBType: restoreDBType,
+				},
+			}
+		)
 		console.log('generationsError', generationsError)
 		console.log('generationsData', generationsData)
 		generations = generationsData
 		loader.dismiss()
 	}
-	const loadPitrWal = async (machine: MachinesRecord, restoreDBType: string, generation_id: string) => {
+	const loadPitrWal = async (
+		machine: MachinesRecord,
+		restoreDBType: string,
+		generation_id: string
+	) => {
 		console.log('loadPitrWal')
 		const loader = await loadingBox('Loading backup files...')
 		wal = []
-		const { data: walData, error: walError } = 
-			await pb.send(`/get-litestream-wal`, {
-						method: 'POST',
-						body: {
-							Domain: machine.Domain,
-							machine_id: machine.machine_id,
-							private_ip: machine.private_ip,
-							restoreDBType: restoreDBType,
-							generation_id: generation_id,
-						},
-					})
+		const { data: walData, error: walError } = await pb.send(`/get-litestream-wal`, {
+			method: 'POST',
+			body: {
+				Domain: machine.Domain,
+				machine_id: machine.machine_id,
+				private_ip: machine.private_ip,
+				restoreDBType: restoreDBType,
+				generation_id: generation_id,
+			},
+		})
 		console.log('walError', walError)
 		console.log('walData', walData)
 		// wal = walData
 		loader.dismiss()
 		return walData
 	}
-	const restoreFile = async (machine: MachinesRecord, generation_id: string, timestamp: string, restoreDBType: string ) => {
-		// litestream restore 
-		// 		-config /pb/litestream.yml 
-		//		-o /pb/tmp001.db 
-		// 		-generation xxxxxxxxxxxx 
-		// 		-timestamp 2024-03-04T13:10:56Z 
+	const restoreFile = async (
+		machine: MachinesRecord,
+		generation_id: string,
+		timestamp: string,
+		restoreDBType: string
+	) => {
+		// litestream restore
+		// 		-config /pb/litestream.yml
+		//		-o /pb/tmp001.db
+		// 		-generation xxxxxxxxxxxx
+		// 		-timestamp 2024-03-04T13:10:56Z
 		//		/pb/pb_data/data.db
 		console.log('restoreFile', generation_id, timestamp, restoreDBType)
 		const loader = await loadingBox(`Restoring ${timestamp}`)
-		const { data: restoreData, error: restoreError } = 
-			await pb.send(`/get-litestream-file`, {
-						method: 'POST',
-						body: {
-							Domain: machine.Domain,
-							machine_id: machine.machine_id,
-							private_ip: machine.private_ip,
-							restoreDBType: restoreDBType,
-							generation_id: generation_id,
-							timestamp: timestamp
-						},
-					})
+		const { data: restoreData, error: restoreError } = await pb.send(`/get-litestream-file`, {
+			method: 'POST',
+			body: {
+				Domain: machine.Domain,
+				machine_id: machine.machine_id,
+				private_ip: machine.private_ip,
+				restoreDBType: restoreDBType,
+				generation_id: generation_id,
+				timestamp: timestamp,
+			},
+		})
 		console.log('restoreError', restoreError)
 		console.log('restoreData', restoreData)
 		// wal = walData
 		loader.dismiss()
-
 	}
 	const ionTabsDidChange = async (item: string) => {
 		console.log('ionTabsDidChange', item)
 	}
-
 </script>
 
 <IonPage {ionViewWillEnter}>
@@ -612,7 +628,6 @@
 						<ion-accordion-group>
 							{#each machines as machine}
 								<ion-accordion value={machine.machine_id}>
-
 									<ion-item slot="header" color={machine.is_primary ? 'dark' : 'medium'}>
 										<ion-label
 											><b>{machine.region}</b>: {getRegionName(machine.region || '')}</ion-label
@@ -634,426 +649,543 @@
 									</ion-item>
 
 									<div slot="content">
-									<ion-item style="--padding-start:0px;">
-										<div id="xxxxx" style="padding-top:40px;padding-bottom:100%;">
-											<ion-tabs style="padding-top: 0px;">
-												<!-- Tab views -->
-												<ion-tab tab="configuration" style="overflow-y: scroll;">
-													<ion-item-divider color="light">
-														<ion-label>Configuration</ion-label>
-													</ion-item-divider>
+										<ion-item style="--padding-start:0px;">
+											<div id="xxxxx" style="padding-top:40px;padding-bottom:100%;">
+												<ion-tabs style="padding-top: 0px;">
+													<!-- Tab views -->
+													<ion-tab tab="configuration" style="overflow-y: scroll;">
+														<ion-item-divider color="light">
+															<ion-label>Configuration</ion-label>
+														</ion-item-divider>
 
-													<ion-grid style="width: 100%;">
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																<ion-label>Instance Type</ion-label>
-															</ion-col>
-															<ion-col>
-																<ion-label>{machine?.is_primary?"Primary":"Replica"}</ion-label>
-															</ion-col>
-														</ion-row>
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																Hardware
-															</ion-col>
-															<ion-col>
-																{machine?.config?.guest?.cpus}
-																{machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config?.guest
-																	?.memory_mb}mb ram
-	
-															</ion-col>
-														</ion-row>
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																<ion-label>PB Version</ion-label>
-															</ion-col>
-															<ion-col>
-																<ion-label>{machine?.image_ref?.tag}</ion-label>
-															</ion-col>
-														</ion-row>
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																<ion-label>State</ion-label>
-															</ion-col>
-															<ion-col>
-																<ion-label>{machine?.state}</ion-label>
-															</ion-col>
-														</ion-row>
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																<ion-label>Created</ion-label>
-															</ion-col>
-															<ion-col>
-																<ion-label>{machine?.created_at}</ion-label>
-															</ion-col>
-														</ion-row>
-														<ion-row>
-															<ion-col style="font-weight: bold;">
-																<ion-label>Updated</ion-label>
-															</ion-col>
-															<ion-col>
-																<ion-label>{machine?.updated_at}</ion-label>
-															</ion-col>
-													</ion-grid>
-												</ion-tab>
-												<ion-tab tab="events" style="overflow-y: scroll;">
-													<ion-item-divider color="light">
-														<ion-label>Events</ion-label>
-													</ion-item-divider>
-			
-													<ion-grid style="width: 100%;">
-														<ion-row style="width: 100%; font-weight: bold;">
-															<ion-col size={"2"}>
-																<ion-label>Src</ion-label>
-															</ion-col>
-															<ion-col size={"3"}>
-																<ion-label>Status</ion-label>
-															</ion-col>
-															<ion-col size={"2"}>
-																<ion-label>Evt</ion-label>
-															</ion-col>
-															<ion-col size={"5"}>
-																<ion-label>Timestamp</ion-label>
-															</ion-col>
-														</ion-row>
-														{#each machine?.events as event}
-															<ion-row style="width: 100%;">
-																<ion-col size={"2"}>
-																	<ion-label>{event?.source}</ion-label>
+														<ion-grid style="width: 100%;">
+															<ion-row>
+																<ion-col style="font-weight: bold;">
+																	<ion-label>Instance Type</ion-label>
 																</ion-col>
-																<ion-col size={"3"}>
-																	<ion-label>{event?.status}</ion-label>
-																</ion-col>
-																<ion-col size={"2"}>
-																	<ion-label>{event?.type}</ion-label>
-																</ion-col>
-																<ion-col size={"5"}>
+																<ion-col>
 																	<ion-label
-																		>{@html new Date(event?.timestamp || 0)
-																			.toLocaleString()
-																			}</ion-label
+																		>{machine?.is_primary ? 'Primary' : 'Replica'}</ion-label
 																	>
 																</ion-col>
 															</ion-row>
-														{/each}
-													</ion-grid>
-			
-												</ion-tab>
-												<ion-tab tab="pitr" style="overflow-y: scroll;">
-
-
-<ion-grid class="width-100">
-	{#if machinePitrChanged[machine.machine_id || ""]}
-	<ion-row>
-		<ion-col>
-			<ion-button
-				size="small"
-				expand="block"
-				on:click={() => {
-					updateStreamingBackupSettings(machine)
-				}}
-				color="danger">Update Streaming Backup Settings</ion-button>
-		</ion-col>
-	</ion-row>
-	{/if}
-	<ion-row>
-		<ion-segment 
-			value={pitrMode} 
-			on:ionChange={() => {togglePitrMode(machine)}}>
-			<ion-segment-button value="configure">
-				<ion-label>Configure</ion-label>
-			</ion-segment-button>
-			<ion-segment-button value="restore">
-				<ion-label>Restore</ion-label>
-			</ion-segment-button>
-		</ion-segment>
-	</ion-row>
-	{#if pitrMode === 'configure'}
-	<ion-row>
-		<ion-col size={"12"}>
-			<ion-grid class="width-100">
-				<ion-row>
-					<ion-col size={"auto"}>
-						<ion-label style="padding-top: 10px;font-weight: bold;">Streaming Enabled:</ion-label>
-					</ion-col>
-					<ion-col size={"auto"}>
-						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'data_enabled')}} checked={machine?.metadata?.pitr?.data_enabled} disabled={false}>data.db</ion-toggle>
-					</ion-col>
-					<ion-col size={"auto"}>
-						<ion-toggle on:ionChange={(e)=>{setMachinePitr(e, machine, 'logs_enabled')}} checked={machine?.metadata?.pitr?.logs_enabled} disabled={false}>logs.db</ion-toggle>
-					</ion-col>
-				</ion-row>
-			</ion-grid>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col style="width: 100%;">
-			<ion-item-divider color="light">
-				Storage Service
-			</ion-item-divider>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col size={"4"}>
-			<ion-label>Bucket</ion-label>
-		</ion-col>
-		<ion-col size={"8"}>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'bucket')}}
-			class="loginInputBoxWithIcon"
-			type="text"
-			id="bucket"
-			name="bucket"
-			placeholder="bucket"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.bucket}
-			debounce={500}>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col size={"4"}>
-			<ion-label>Base Path</ion-label>
-		</ion-col>
-		<ion-col size={"8"}>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'path')}}
-			class="loginInputBoxWithIcon"
-			type="text"
-			id="path"
-			name="path"
-			placeholder="path"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadat?.pitr?.path}
-			debounce={500}>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col size={"4"}>
-			<ion-label>Endpoint</ion-label>
-		</ion-col>
-		<ion-col size={"8"}>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'endpoint')}}
-			class="loginInputBoxWithIcon"
-			type="password"
-			id="endpoint"
-			name="endpoint"
-			placeholder="endpoint"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.endpoint}
-			debounce={500}>
-			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
-			on:click={(e) => {
-				console.log('e', e.target.parentElement)
-				const input = e.target.parentElement;
-				input.type = input.type === 'password' ? 'text' : 'password';
-				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
-			}}
-			></ion-icon>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col size={"4"}>
-			<ion-label>Access Key</ion-label>
-			
-		</ion-col>
-		<ion-col size={"8"}>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'access_key_id')}}
-			class="loginInputBoxWithIcon"
-			type="password"
-			id="access_key_id"
-			name="access_key_id"
-			placeholder="access_key_id"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.access_key_id}
-			debounce={500}>
-			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
-			on:click={(e) => {
-				console.log('e', e.target.parentElement)
-				const input = e.target.parentElement;
-				input.type = input.type === 'password' ? 'text' : 'password';
-				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
-			}}
-			></ion-icon>
-			</ion-input>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col size={"4"}>
-			<ion-label>Secret Key</ion-label>
-		</ion-col>
-		<ion-col size={"8"}>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'secret_access_key')}}
-			class="loginInputBoxWithIcon"
-			type="password"
-			id="secret_access_key"
-			name="secret_access_key"
-			placeholder="secret_access_key"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.secret_access_key}
-			debounce={500}>
-			<ion-icon style="padding-left: 10px;" icon={eyeOffOutline}
-			on:click={(e) => {
-				console.log('e', e.target.parentElement)
-				const input = e.target.parentElement;
-				input.type = input.type === 'password' ? 'text' : 'password';
-				e.target.icon = input.type === 'password' ? eyeOffOutline : eyeOutline;
-			}}
-			></ion-icon>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col>
-			<ion-label>Retention (hrs)</ion-label>
-		</ion-col>
-		<ion-col class="ion-text-center">
-			<ion-label>Snapshot (hrs)</ion-label>
-		</ion-col>
-		<ion-col class="ion-text-right">
-			<ion-label>Sync (secs)</ion-label>
-		</ion-col>
-	</ion-row>
-	<ion-row>
-		<ion-col>
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'retention')}}
-			class="loginInputBoxWithIcon"
-			type="text"
-			id="retention"
-			name="retention"
-			placeholder="retention (hrs)"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.retention}
-			debounce={500}>
-		</ion-col>
-		<ion-col class="ion-text-center">
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'snapshot_interval')}}
-			class="loginInputBoxWithIcon"
-			type="text"
-			id="snapshot_interval"
-			name="snapshot_interval"
-			placeholder="snapshot (hrs)"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.snapshot_interval}
-			debounce={500}> 
-		</ion-col>
-		<ion-col class="ion-text-right">
-			<ion-input
-			on:ionChange={(e) => {setMachinePitr(e, machine, 'sync_interval')}}
-			class="loginInputBoxWithIcon"
-			type="text"
-			id="sync_interval"
-			name="sync_interval"
-			placeholder="sync (secs)"
-			style="--padding-start: 10px;--padding-end: 10px;"
-			value={machine?.metadata?.pitr?.sync_interval}
-			debounce={500}>
-		</ion-col>
-	</ion-row>
-	{/if}
-	{#if pitrMode === 'restore'}
-	<ion-item-divider color="light">
-		<ion-label>Restore database:</ion-label>
-	</ion-item-divider>
-	
-	<ion-row>
-		<ion-segment 
-			value={restoreDBType} 
-			on:ionChange={(e) => { restoreDBType = e.detail.value}}>
-			<ion-segment-button value="data">
-				<ion-label>data.db</ion-label>
-			</ion-segment-button>
-			<ion-segment-button value="logs">
-				<ion-label>logs.db</ion-label>
-			</ion-segment-button>
-		</ion-segment>
-	</ion-row>
-	<ion-button size="small" expand="block" on:click={()=>{
-		loadPitrGenerations(machine, restoreDBType);
-	}}>view backup generations for {restoreDBType}.db</ion-button>
-	
-
-				
-		<ion-accordion-group on:ionChange={async (e)=>{
-			console.log('accordion-group ionChange', e)
-			const wal = await loadPitrWal(machine, restoreDBType, e.detail.value)
-			console.log('wal', wal)
-			const el = document.getElementById(e.detail.value + '-content')
-			if (el) {
-				for (let i = 0; i < wal.length; i++) {
-					const btn = document.createElement('ion-button')
-					//btn.size = "small"
-					btn.expand = "block"
-					btn.color = "primary"
-					btn.classList.add("restoreButton")
-					btn.textContent = "restore backup point: " + wal[i].created
-					btn.onclick = async () => { 
-						restoreFile(machine, e.detail.value, wal[i].created, restoreDBType)
-					}
-					el.appendChild(btn)
-				}
-			}			
-		}}>
-		{#each generations as generation}
-			
-			<ion-accordion id={generation.generation} value={generation.generation}>
-				<ion-item slot="header">
-					Generation: {generation.start}
-				</ion-item>
-				<div slot="content" id={generation.generation + '-content'}>
-				</div>
-			</ion-accordion>
-		{/each}
-		</ion-accordion-group>
-	{/if}
-
-</ion-grid>
-												</ion-tab>
-												<ion-tab tab="keys" style="overflow-y: scroll;">
-													<div>
+															<ion-row>
+																<ion-col style="font-weight: bold;"> Hardware </ion-col>
+																<ion-col>
+																	{machine?.config?.guest?.cpus}
+																	{machine?.config?.guest?.cpu_kind} CPU(s) with {machine?.config
+																		?.guest?.memory_mb}mb ram
+																</ion-col>
+															</ion-row>
+															<ion-row>
+																<ion-col style="font-weight: bold;">
+																	<ion-label>PB Version</ion-label>
+																</ion-col>
+																<ion-col>
+																	<ion-label>{machine?.image_ref?.tag}</ion-label>
+																</ion-col>
+															</ion-row>
+															<ion-row>
+																<ion-col style="font-weight: bold;">
+																	<ion-label>State</ion-label>
+																</ion-col>
+																<ion-col>
+																	<ion-label>{machine?.state}</ion-label>
+																</ion-col>
+															</ion-row>
+															<ion-row>
+																<ion-col style="font-weight: bold;">
+																	<ion-label>Created</ion-label>
+																</ion-col>
+																<ion-col>
+																	<ion-label>{machine?.created_at}</ion-label>
+																</ion-col>
+															</ion-row>
+															<ion-row>
+																<ion-col style="font-weight: bold;">
+																	<ion-label>Updated</ion-label>
+																</ion-col>
+																<ion-col>
+																	<ion-label>{machine?.updated_at}</ion-label>
+																</ion-col>
+															</ion-row></ion-grid
+														>
+													</ion-tab>
+													<ion-tab tab="events" style="overflow-y: scroll;">
 														<ion-item-divider color="light">
-															<ion-label>Installed Keys:</ion-label>
+															<ion-label>Events</ion-label>
 														</ion-item-divider>
-														<ion-item>item</ion-item>
-														<div class="ion-padding">
-														<ion-button size="small" expand="block" 
-															fill="outline"
-															color="dark"
-															on:click={()=>{machine.showKeys = !machine.showKeys}}>
-															<ion-icon slot="start" icon={machine.showKeys ? lockOpen : lockClosedOutline } /> Manage Keys
-														</ion-button>
+
+														<ion-grid style="width: 100%;">
+															<ion-row style="width: 100%; font-weight: bold;">
+																<ion-col size={'2'}>
+																	<ion-label>Src</ion-label>
+																</ion-col>
+																<ion-col size={'3'}>
+																	<ion-label>Status</ion-label>
+																</ion-col>
+																<ion-col size={'2'}>
+																	<ion-label>Evt</ion-label>
+																</ion-col>
+																<ion-col size={'5'}>
+																	<ion-label>Timestamp</ion-label>
+																</ion-col>
+															</ion-row>
+															{#each machine?.events as event}
+																<ion-row style="width: 100%;">
+																	<ion-col size={'2'}>
+																		<ion-label>{event?.source}</ion-label>
+																	</ion-col>
+																	<ion-col size={'3'}>
+																		<ion-label>{event?.status}</ion-label>
+																	</ion-col>
+																	<ion-col size={'2'}>
+																		<ion-label>{event?.type}</ion-label>
+																	</ion-col>
+																	<ion-col size={'5'}>
+																		<ion-label
+																			>{@html new Date(
+																				event?.timestamp || 0
+																			).toLocaleString()}</ion-label
+																		>
+																	</ion-col>
+																</ion-row>
+															{/each}
+														</ion-grid>
+													</ion-tab>
+													<ion-tab tab="pitr" style="overflow-y: scroll;">
+														<ion-grid class="width-100">
+															{#if machinePitrChanged[machine.machine_id || '']}
+																<ion-row>
+																	<ion-col>
+																		<ion-button
+																			size="small"
+																			expand="block"
+																			on:click={() => {
+																				updateStreamingBackupSettings(machine)
+																			}}
+																			color="danger">Update Streaming Backup Settings</ion-button
+																		>
+																	</ion-col>
+																</ion-row>
+															{/if}
+															<ion-row>
+																<ion-segment
+																	value={pitrMode}
+																	on:ionChange={() => {
+																		togglePitrMode(machine)
+																	}}
+																>
+																	<ion-segment-button value="configure">
+																		<ion-label>Configure</ion-label>
+																	</ion-segment-button>
+																	<ion-segment-button value="restore">
+																		<ion-label>Restore</ion-label>
+																	</ion-segment-button>
+																</ion-segment>
+															</ion-row>
+															{#if pitrMode === 'configure'}
+																<ion-row>
+																	<ion-col size={'12'}>
+																		<ion-grid class="width-100">
+																			<ion-row>
+																				<ion-col size={'auto'}>
+																					<ion-label style="padding-top: 10px;font-weight: bold;"
+																						>Streaming Enabled:</ion-label
+																					>
+																				</ion-col>
+																				<ion-col size={'auto'}>
+																					<ion-toggle
+																						on:ionChange={(e) => {
+																							setMachinePitr(e, machine, 'data_enabled')
+																						}}
+																						checked={machine?.metadata?.pitr?.data_enabled}
+																						disabled={false}>data.db</ion-toggle
+																					>
+																				</ion-col>
+																				<ion-col size={'auto'}>
+																					<ion-toggle
+																						on:ionChange={(e) => {
+																							setMachinePitr(e, machine, 'logs_enabled')
+																						}}
+																						checked={machine?.metadata?.pitr?.logs_enabled}
+																						disabled={false}>logs.db</ion-toggle
+																					>
+																				</ion-col>
+																			</ion-row>
+																		</ion-grid>
+																	</ion-col>
+																</ion-row>
+																<ion-row>
+																	<ion-col style="width: 100%;">
+																		<ion-item-divider color="light">
+																			Storage Service
+																		</ion-item-divider>
+																	</ion-col>
+																</ion-row>
+																<ion-row>
+																	<ion-col size={'4'}>
+																		<ion-label>Bucket</ion-label>
+																	</ion-col>
+																	<ion-col size={'8'}>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'bucket')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="text"
+																			id="bucket"
+																			name="bucket"
+																			placeholder="bucket"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.bucket}
+																			debounce={500}
+																		/></ion-col
+																	>
+																</ion-row>
+																<ion-row>
+																	<ion-col size={'4'}>
+																		<ion-label>Base Path</ion-label>
+																	</ion-col>
+																	<ion-col size={'8'}>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'path')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="text"
+																			id="path"
+																			name="path"
+																			placeholder="path"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadat?.pitr?.path}
+																			debounce={500}
+																		/></ion-col
+																	>
+																</ion-row>
+																<ion-row>
+																	<ion-col size={'4'}>
+																		<ion-label>Endpoint</ion-label>
+																	</ion-col>
+																	<ion-col size={'8'}>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'endpoint')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="password"
+																			id="endpoint"
+																			name="endpoint"
+																			placeholder="endpoint"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.endpoint}
+																			debounce={500}
+																		>
+																			<ion-icon
+																				style="padding-left: 10px;"
+																				icon={eyeOffOutline}
+																				on:click={(e) => {
+																					console.log('e', e.target.parentElement)
+																					const input = e.target.parentElement
+																					input.type =
+																						input.type === 'password' ? 'text' : 'password'
+																					e.target.icon =
+																						input.type === 'password' ? eyeOffOutline : eyeOutline
+																				}}
+																			/>
+																		</ion-input></ion-col
+																	>
+																</ion-row>
+																<ion-row>
+																	<ion-col size={'4'}>
+																		<ion-label>Access Key</ion-label>
+																	</ion-col>
+																	<ion-col size={'8'}>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'access_key_id')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="password"
+																			id="access_key_id"
+																			name="access_key_id"
+																			placeholder="access_key_id"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.access_key_id}
+																			debounce={500}
+																		>
+																			<ion-icon
+																				style="padding-left: 10px;"
+																				icon={eyeOffOutline}
+																				on:click={(e) => {
+																					console.log('e', e.target.parentElement)
+																					const input = e.target.parentElement
+																					input.type =
+																						input.type === 'password' ? 'text' : 'password'
+																					e.target.icon =
+																						input.type === 'password' ? eyeOffOutline : eyeOutline
+																				}}
+																			/>
+																		</ion-input>
+																	</ion-col>
+																</ion-row>
+																<ion-row>
+																	<ion-col size={'4'}>
+																		<ion-label>Secret Key</ion-label>
+																	</ion-col>
+																	<ion-col size={'8'}>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'secret_access_key')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="password"
+																			id="secret_access_key"
+																			name="secret_access_key"
+																			placeholder="secret_access_key"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.secret_access_key}
+																			debounce={500}
+																		>
+																			<ion-icon
+																				style="padding-left: 10px;"
+																				icon={eyeOffOutline}
+																				on:click={(e) => {
+																					console.log('e', e.target.parentElement)
+																					const input = e.target.parentElement
+																					input.type =
+																						input.type === 'password' ? 'text' : 'password'
+																					e.target.icon =
+																						input.type === 'password' ? eyeOffOutline : eyeOutline
+																				}}
+																			/>
+																		</ion-input></ion-col
+																	>
+																</ion-row>
+																<ion-row>
+																	<ion-col>
+																		<ion-label>Retention (hrs)</ion-label>
+																	</ion-col>
+																	<ion-col class="ion-text-center">
+																		<ion-label>Snapshot (hrs)</ion-label>
+																	</ion-col>
+																	<ion-col class="ion-text-right">
+																		<ion-label>Sync (secs)</ion-label>
+																	</ion-col>
+																</ion-row>
+																<ion-row>
+																	<ion-col>
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'retention')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="text"
+																			id="retention"
+																			name="retention"
+																			placeholder="retention (hrs)"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.retention}
+																			debounce={500}
+																		/></ion-col
+																	>
+																	<ion-col class="ion-text-center">
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'snapshot_interval')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="text"
+																			id="snapshot_interval"
+																			name="snapshot_interval"
+																			placeholder="snapshot (hrs)"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.snapshot_interval}
+																			debounce={500}
+																		/></ion-col
+																	>
+																	<ion-col class="ion-text-right">
+																		<ion-input
+																			on:ionChange={(e) => {
+																				setMachinePitr(e, machine, 'sync_interval')
+																			}}
+																			class="loginInputBoxWithIcon"
+																			type="text"
+																			id="sync_interval"
+																			name="sync_interval"
+																			placeholder="sync (secs)"
+																			style="--padding-start: 10px;--padding-end: 10px;"
+																			value={machine?.metadata?.pitr?.sync_interval}
+																			debounce={500}
+																		/></ion-col
+																	>
+																</ion-row>
+															{/if}
+															{#if pitrMode === 'restore'}
+																<ion-item-divider color="light">
+																	<ion-label>Restore database:</ion-label>
+																</ion-item-divider>
+
+																<ion-row>
+																	<ion-segment
+																		value={restoreDBType}
+																		on:ionChange={(e) => {
+																			restoreDBType = e.detail.value
+																		}}
+																	>
+																		<ion-segment-button value="data">
+																			<ion-label>data.db</ion-label>
+																		</ion-segment-button>
+																		<ion-segment-button value="logs">
+																			<ion-label>logs.db</ion-label>
+																		</ion-segment-button>
+																	</ion-segment>
+																</ion-row>
+																<ion-button
+																	size="small"
+																	expand="block"
+																	on:click={() => {
+																		loadPitrGenerations(machine, restoreDBType)
+																	}}>view backup generations for {restoreDBType}.db</ion-button
+																>
+
+																<ion-accordion-group
+																	on:ionChange={async (e) => {
+																		console.log('accordion-group ionChange', e)
+																		const wal = await loadPitrWal(
+																			machine,
+																			restoreDBType,
+																			e.detail.value
+																		)
+																		console.log('wal', wal)
+																		const el = document.getElementById(e.detail.value + '-content')
+																		if (el) {
+																			for (let i = 0; i < wal.length; i++) {
+																				const btn = document.createElement('ion-button')
+																				//btn.size = "small"
+																				btn.expand = 'block'
+																				btn.color = 'primary'
+																				btn.classList.add('restoreButton')
+																				btn.textContent = 'restore backup point: ' + wal[i].created
+																				btn.onclick = async () => {
+																					restoreFile(
+																						machine,
+																						e.detail.value,
+																						wal[i].created,
+																						restoreDBType
+																					)
+																				}
+																				el.appendChild(btn)
+																			}
+																		}
+																	}}
+																>
+																	{#each generations as generation}
+																		<ion-accordion
+																			id={generation.generation}
+																			value={generation.generation}
+																		>
+																			<ion-item slot="header">
+																				Generation: {generation.start}
+																			</ion-item>
+																			<div slot="content" id={generation.generation + '-content'} />
+																		</ion-accordion>
+																	{/each}
+																</ion-accordion-group>
+															{/if}
+														</ion-grid>
+													</ion-tab>
+													<ion-tab tab="keys" style="overflow-y: scroll;">
+														<div>
+															<ion-item-divider color="light">
+																<ion-label>Installed Keys:</ion-label>
+															</ion-item-divider>
+															{#each (machine.keys || []) as machinekey}
+																machinekey...
+															{/each}
+															{#if machine?.keys?.length === 0}
+																<div class="ion-padding">
+																	<ion-button
+																		size="small"
+																		expand="block"
+																		fill={'outline'}
+																		color="dark"
+																		on:click={() => {
+																			console.log('not ready')
+																		}}
+																	>
+																		<ion-icon
+																			slot="start"
+																			icon={cloudUploadOutline}
+																		/> Upload Public SSH Key to Machine
+																	</ion-button>
+																</div>
+															{/if}
+
+															<div class="ion-padding">
+																<ion-button
+																	size="small"
+																	expand="block"
+																	fill={machine.showKeys ? 'solid' : 'outline'}
+																	color="dark"
+																	on:click={() => {
+																		machine.showKeys = !machine.showKeys
+																	}}
+																>
+																	<ion-icon
+																		slot="start"
+																		icon={machine.showKeys ? lockOpen : lockClosedOutline}
+																	/> Manage Personal Public SSH Keys
+																</ion-button>
+															</div>
+
+															{#if machine.showKeys}
+																<Keys />
+															{/if}
 														</div>
-	
-														{#if machine.showKeys}
-															<Keys />
-														{/if}
-													</div>
-												</ion-tab>
-												
-												<!-- Tab bar -->
-												<ion-tab-bar slot="top">
-												  <ion-tab-button tab="configuration"  on:click={()=>{ionTabsDidChange('configuration')}}>
-													<ion-icon icon={settingsOutline}></ion-icon>
-													<ion-label>Configuration</ion-label>
-												  </ion-tab-button>
-												  <ion-tab-button tab="events" on:click={()=>{ionTabsDidChange('events')}}>
-													<ion-icon icon={listOutline}></ion-icon>
-													<ion-label>Events</ion-label>
-												  </ion-tab-button>
-												  <ion-tab-button tab="pitr" on:click={()=>{ionTabsDidChange('pitr')}}>
-													<ion-icon icon={timeOutline}></ion-icon>
-													<ion-label>Streaming Backups</ion-label>
-												  </ion-tab-button>
-												  <ion-tab-button tab="keys" on:click={()=>{ionTabsDidChange('keys')}}>
-													<ion-icon icon={keyOutline}></ion-icon>
-													<ion-label>SSH Keys</ion-label>
-												  </ion-tab-button>
-												</ion-tab-bar>
-											  </ion-tabs>
-										</div>
+													</ion-tab>
+
+													<!-- Tab bar -->
+													<ion-tab-bar slot="top">
+														<ion-tab-button
+															tab="configuration"
+															on:click={() => {
+																ionTabsDidChange('configuration')
+															}}
+														>
+															<ion-icon icon={settingsOutline} />
+															<ion-label>Configuration</ion-label>
+														</ion-tab-button>
+														<ion-tab-button
+															tab="events"
+															on:click={() => {
+																ionTabsDidChange('events')
+															}}
+														>
+															<ion-icon icon={listOutline} />
+															<ion-label>Events</ion-label>
+														</ion-tab-button>
+														<ion-tab-button
+															tab="pitr"
+															on:click={() => {
+																ionTabsDidChange('pitr')
+															}}
+														>
+															<ion-icon icon={timeOutline} />
+															<ion-label>Streaming Backups</ion-label>
+														</ion-tab-button>
+														<ion-tab-button
+															tab="keys"
+															on:click={() => {
+																ionTabsDidChange('keys')
+															}}
+														>
+															<ion-icon icon={keyOutline} />
+															<ion-label>SSH Keys</ion-label>
+														</ion-tab-button>
+													</ion-tab-bar>
+												</ion-tabs>
+											</div>
 										</ion-item>
 										{#if !machine.is_primary}
 											<div class="ion-padding">
@@ -1079,7 +1211,6 @@
 													<ion-icon slot="start" icon={trashOutline} />
 													Remove Machine
 												</ion-button>
-
 											</div>
 										{/if}
 									</div>
@@ -1100,6 +1231,7 @@
 		>
 	</ion-content>
 </IonPage>
+
 <style>
 	.loginInputBoxWithIcon {
 		height: 30px;

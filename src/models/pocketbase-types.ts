@@ -4,14 +4,15 @@
 
 import type PocketBase from 'pocketbase'
 import type { RecordService } from 'pocketbase'
-
 export type IObjectKeys = {
     [key: string]: any //string | number | object | undefined
 }
 
 export enum Collections {
 	Apps = "apps",
+	MachineKey = "machine_key",
 	Machines = "machines",
+	UserKeys = "user_keys",
 	Users = "users",
 }
 
@@ -54,6 +55,13 @@ export type AppsRecord = IObjectKeys & {
 	userid?: RecordIdString
 }
 
+export type MachineKeyRecord = {
+	key?: RecordIdString
+	machine?: RecordIdString
+	machine_id?: string
+	user?: RecordIdString
+}
+
 export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = unknown, Tmetadata = unknown> = IObjectKeys & {
 	Domain?: string
 	config?: null | Tconfig
@@ -63,13 +71,20 @@ export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = un
 	instance_id?: string
 	is_primary?: boolean
 	machine_id?: string
-	metadata?: any
+	metadata?: null | Tmetadata
 	name?: string
 	private_ip?: string
 	region?: string
 	state?: string
 	updated_at?: IsoDateString
 	userid?: RecordIdString
+}
+
+export type UserKeysRecord = {
+	key?: string
+	sort_key?: number
+	title?: string
+	user?: RecordIdString
 }
 
 export type UsersRecord = {
@@ -79,20 +94,26 @@ export type UsersRecord = {
 
 // Response types include system fields and match responses from the PocketBase API
 export type AppsResponse<Texpand = unknown> = Required<AppsRecord> & BaseSystemFields<Texpand>
+export type MachineKeyResponse<Texpand = unknown> = Required<MachineKeyRecord> & BaseSystemFields<Texpand>
 export type MachinesResponse<Tconfig = unknown, Tevents = unknown, Timage_ref = unknown, Tmetadata = unknown, Texpand = unknown> = Required<MachinesRecord<Tconfig, Tevents, Timage_ref, Tmetadata>> & BaseSystemFields<Texpand>
+export type UserKeysResponse<Texpand = unknown> = Required<UserKeysRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
 	apps: AppsRecord
+	machine_key: MachineKeyRecord
 	machines: MachinesRecord
+	user_keys: UserKeysRecord
 	users: UsersRecord
 }
 
 export type CollectionResponses = {
 	apps: AppsResponse
+	machine_key: MachineKeyResponse
 	machines: MachinesResponse
+	user_keys: UserKeysResponse
 	users: UsersResponse
 }
 
@@ -101,6 +122,8 @@ export type CollectionResponses = {
 
 export type TypedPocketBase = PocketBase & {
 	collection(idOrName: 'apps'): RecordService<AppsResponse>
+	collection(idOrName: 'machine_key'): RecordService<MachineKeyResponse>
 	collection(idOrName: 'machines'): RecordService<MachinesResponse>
+	collection(idOrName: 'user_keys'): RecordService<UserKeysResponse>
 	collection(idOrName: 'users'): RecordService<UsersResponse>
 }

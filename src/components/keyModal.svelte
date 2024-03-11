@@ -13,14 +13,14 @@
 	interface Data extends IObjectKeys {
 		key: string
 		title: string
-		user_id: string
+		user: string
 		sort_key: number
 		id: string
 	}
 	export let data: Data = {
 		key: '', // Example variable
 		title: '', // Another variable
-		user_id: '',
+		user: '',
 		sort_key: 0,
 		id: '',
 	}
@@ -61,7 +61,7 @@
 				closeModal()
 			}
 		} else {
-			data.user_id = $currentUser.id
+			data.user = $currentUser.id
 			data.sort_key = 0
 			const record = await pb.collection('user_keys').create(data)
 			if (!record?.id) {
