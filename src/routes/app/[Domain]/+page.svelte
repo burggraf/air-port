@@ -1,5 +1,4 @@
 <script lang="ts">
-
 	//import { currentState } from './../../../services/state.service.ts';
 	import '$styles/grid-styles.css'
 	import IonPage from '$ionpage'
@@ -7,6 +6,7 @@
 	import * as allIonicIcons from 'ionicons/icons'
 	import type { AppsRecord, MachinesRecord, IObjectKeys } from '$models/pocketbase-types'
 	import { chooseRegion, getRegionName } from '$services/region.service'
+	import Keys from '$components/Keys.svelte'
 
 	import {
 		addOutline,
@@ -30,6 +30,10 @@
 		syncCircleOutline,
 		timeOutline,
 		trashOutline,
+		keyOutline,
+		lockClosedOutline,
+		lockOpenOutline,
+		lockOpen,
 	} from 'ionicons/icons'
 	import { currentUser, pb } from '$services/backend.service'
 	import { goto } from '$app/navigation'
@@ -438,6 +442,9 @@
 		// wal = walData
 		loader.dismiss()
 
+	}
+	const ionTabsDidChange = async (item: string) => {
+		console.log('ionTabsDidChange', item)
 	}
 
 </script>
@@ -969,31 +976,6 @@
 	}}>view backup generations for {restoreDBType}.db</ion-button>
 	
 
-	<!-- <ion-accordion-group>
-		{#each machines as machine}
-			<ion-accordion value={machine.machine_id}> -->
-<!--
-<ion-accordion-group>
-  <ion-accordion value="first">
-    <ion-item slot="header" color="light">
-      <ion-label>First Accordion</ion-label>
-    </ion-item>
-    <div class="ion-padding" slot="content">First Content</div>
-  </ion-accordion>
-  <ion-accordion value="second">
-    <ion-item slot="header" color="light">
-      <ion-label>Second Accordion</ion-label>
-    </ion-item>
-    <div class="ion-padding" slot="content">Second Content</div>
-  </ion-accordion>
-  <ion-accordion value="third">
-    <ion-item slot="header" color="light">
-      <ion-label>Third Accordion</ion-label>
-    </ion-item>
-    <div class="ion-padding" slot="content">Third Content</div>
-  </ion-accordion>
-</ion-accordion-group>	
--->
 				
 		<ion-accordion-group on:ionChange={async (e)=>{
 			console.log('accordion-group ionChange', e)
@@ -1029,34 +1011,45 @@
 	{/if}
 
 </ion-grid>
-<!-- `      - type: s3\n` +
-`        bucket: ${bucket || 'air-port-sjc'}\n` +
-`        path: ${path || 'litestream/'+Domain+'/data'}\n` +
-`        endpoint: ${endpoint}\n` +
-`        access-key-id: ${access_key_id || ''}\n` +
-`        secret-access-key: ${secret_access_key || ''}\n` +
-`        retention: ${retention}h\n` +
-`        snapshot-interval: ${snapshot_interval || '24'}h\n` +
-`        sync-interval: ${sync_interval || '30'}s\n` +
-`        force-path-style: ${typeof force_path_style === 'boolean' ? force_path_style || true}\n` -->
-											
-
-
 												</ion-tab>
-											  
+												<ion-tab tab="keys" style="overflow-y: scroll;">
+													<div>
+														<ion-item-divider color="light">
+															<ion-label>Installed Keys:</ion-label>
+														</ion-item-divider>
+														<ion-item>item</ion-item>
+														<div class="ion-padding">
+														<ion-button size="small" expand="block" 
+															fill="outline"
+															color="dark"
+															on:click={()=>{machine.showKeys = !machine.showKeys}}>
+															<ion-icon slot="start" icon={machine.showKeys ? lockOpen : lockClosedOutline } /> Manage Keys
+														</ion-button>
+														</div>
+	
+														{#if machine.showKeys}
+															<Keys />
+														{/if}
+													</div>
+												</ion-tab>
+												
 												<!-- Tab bar -->
 												<ion-tab-bar slot="top">
-												  <ion-tab-button tab="configuration">
+												  <ion-tab-button tab="configuration"  on:click={()=>{ionTabsDidChange('configuration')}}>
 													<ion-icon icon={settingsOutline}></ion-icon>
 													<ion-label>Configuration</ion-label>
 												  </ion-tab-button>
-												  <ion-tab-button tab="events">
+												  <ion-tab-button tab="events" on:click={()=>{ionTabsDidChange('events')}}>
 													<ion-icon icon={listOutline}></ion-icon>
 													<ion-label>Events</ion-label>
 												  </ion-tab-button>
-												  <ion-tab-button tab="pitr">
+												  <ion-tab-button tab="pitr" on:click={()=>{ionTabsDidChange('pitr')}}>
 													<ion-icon icon={timeOutline}></ion-icon>
 													<ion-label>Streaming Backups</ion-label>
+												  </ion-tab-button>
+												  <ion-tab-button tab="keys" on:click={()=>{ionTabsDidChange('keys')}}>
+													<ion-icon icon={keyOutline}></ion-icon>
+													<ion-label>SSH Keys</ion-label>
 												  </ion-tab-button>
 												</ion-tab-bar>
 											  </ion-tabs>
