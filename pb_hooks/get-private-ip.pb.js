@@ -1,53 +1,55 @@
 /// <reference path="../pb_data/types.d.ts" />
+routerAdd('GET', '/get-private-ip/:Domain', async (c) => {
+	// const token = c.request().header.get("Authorization")
+	// if (!token || token !== 'my_secret_token') {
+	// 	return c.json(200, 'not authorized')
+	// }	
+    const { select } = require(`${__hooks}/modules/sql.js`)
+    const Domain = c.pathParam('Domain')
+    if (!Domain) return c.json(200, 'Domain is required')
+    try {
+        const { data } = select(
+            { private_ip: ''},
+            `select private_ip from machines where Domain = '${Domain}' and is_primary limit 1`
+        )
+        if (data) return c.json(200, data[0].private_ip)
+        else return c.json(200, 'ERR-1')
+    } catch (error) {
+        return c.json(200, 'ERR-2:'+JSON.stringify(error))
+    }
+});
+routerAdd('GET', '/get-private-ip/:Domain/:region_or_machine_id', async (c) => {
+	// const token = c.request().header.get("Authorization")
+	// if (!token || token !== 'my_secret_token') {
+	// 	return c.json(200, 'not authorized')
+	// }	
+    const { select } = require(`${__hooks}/modules/sql.js`)
+    const Domain = c.pathParam('Domain')
+    if (!Domain) return c.json(200,'Domain is required')
+    const region_or_machine_id = c.pathParam('region_or_machine_id')
+    if (!region_or_machine_id) return c.json(200, 'region_or_machine_id is required')
+    if (region_or_machine_id.length === 3) { // region
+        try {
+            const { data } = select(
+                { private_ip: ''},
+                `select private_ip from machines where Domain = '${Domain}' and region = '${region_or_machine_id}' limit 1`
+            )
+            if (data) return c.json(200, data[0].private_ip)
+            else return c.json(200, 'ERR-1')
+        } catch (error) {
+            return c.json(200, 'ERR-2:'+JSON.stringify(error))
+        }    
+    } else { // machine_id
+        try {
+            const { data } = select(
+                { private_ip: ''},
+                `select private_ip from machines where Domain = '${Domain}' and machine_id = '${region_or_machine_id}' limit 1`
+            )
+            if (data) return c.json(200, data[0].private_ip)
+            else return c.json(200, 'ERR-1')
+        } catch (error) {
+            return c.json(200, 'ERR-2:'+JSON.stringify(error))
+        }    
 
-$app.rootCmd.addCommand(new Command({
-    use: "get-private-ip",
-    run: (cmd, args) => {
-        const { select } = require(`${__hooks}/modules/sql.js`)
-        if (args.length === 0) {
-            console.log('get-private-ip <Domain> [region | machine_id]')
-            return
-        }
-        if (args.length === 1) {
-            try {
-                const { data } = select(
-                    { private_ip: ''},
-                    `select private_ip from machines where Domain = '${args[0]}' and is_primary = true limit 1`
-                )
-                if (data) console.log(data[0].private_ip) 
-                else console.log('ERR-1')
-                return;
-            } catch (error) {
-                console.log('ERR-2')
-                return;
-            }
-        }
-        if (args.length === 2 && args[1].length === 3) {
-            try {
-                const { data } = select(
-                    { private_ip: ''},
-                    `select private_ip from machines where Domain = '${args[0]}' and region = '${args[1]}' limit 1`
-                )    
-                if (data) console.log(data[0].private_ip) 
-                else console.log('ERR-3')
-                return;
-            } catch (error) {
-                console.log('ERR-4')
-                return;
-            }
-        } else {
-            try {
-                const { data, error } = select(
-                    { private_ip: ''},
-                    `select private_ip from machines where Domain = '${args[0]}' and machine_id = '${args[1]}' limit 1`
-                )
-                if (data) console.log(data[0].private_ip) 
-                else console.log('ERR-5')
-                return;    
-            } catch (error) {
-                console.log('ERR-6')
-                return;
-            }
-        }
-    },
-}));
+    }
+});
