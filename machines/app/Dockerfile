@@ -16,6 +16,9 @@ COPY ./nats .
 COPY ./start.sh .
 COPY ./marmot.toml.sample .
 RUN mkdir -p /pb/.ssh
+RUN cp /etc/passwd /etc/passwd.backup
+RUN if [ ! -f /pb/passwd ]; then cp /etc/passwd /pb/passwd; fi
+RUN ln -sf /pb/passwd /etc/passwd
 COPY ./sshd_config /etc/ssh/sshd_config
 
 EXPOSE 8080 2222 4222 5222 6222 7222 8222

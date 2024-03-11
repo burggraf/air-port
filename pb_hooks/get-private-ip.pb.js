@@ -15,10 +15,10 @@ $app.rootCmd.addCommand(new Command({
                     `select private_ip from machines where Domain = '${args[0]}' and is_primary = true limit 1`
                 )
                 if (data) console.log(data[0].private_ip) 
-                else console.log('')
+                else console.log('ERR-1')
                 return;
             } catch (error) {
-                console.log('')
+                console.log('ERR-2')
                 return;
             }
         }
@@ -29,10 +29,10 @@ $app.rootCmd.addCommand(new Command({
                     `select private_ip from machines where Domain = '${args[0]}' and region = '${args[1]}' limit 1`
                 )    
                 if (data) console.log(data[0].private_ip) 
-                else console.log('')
+                else console.log('ERR-3')
                 return;
             } catch (error) {
-                console.log('')
+                console.log('ERR-4')
                 return;
             }
         } else {
@@ -42,12 +42,12 @@ $app.rootCmd.addCommand(new Command({
                     `select private_ip from machines where Domain = '${args[0]}' and machine_id = '${args[1]}' limit 1`
                 )
                 if (data) console.log(data[0].private_ip) 
-                else console.log('')
+                else console.log('ERR-5')
                 return;    
             } catch (error) {
-                console.log('')
+                console.log('ERR-6')
                 return;
             }
         }
     },
-}))
+}));
