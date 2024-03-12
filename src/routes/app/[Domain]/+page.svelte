@@ -544,6 +544,7 @@
 			const result = await pb.collection('machine_key').delete(machine_key.id)
 			console.log('removal result', result)
 		} else {
+			let loader = await loadingBox('Recording key assignment...')
 			// add it
 			const result = await pb.collection('machine_key').create({
 				machine: machine.id,
@@ -552,6 +553,26 @@
 				user: $currentUser.id,
 			})
 			console.log('install result', result)
+			loader.dismiss()
+			loader = await loadingBox('Installing key on server...')
+			// &&&
+			const { data: addKeyData, error: addKeyError } = await pb.send(`/ssh-add-key`, {
+						method: 'POST',
+						body: {
+							Domain: Domain,
+							machine_id: machine.machine_id,
+							public_key: key.key
+						},
+					})
+			loader.dismiss()
+			console.log('addKeyData', addKeyData)
+			console.log('addKeyError', addKeyError)
+			if (addKeyError) {
+				toast('Error: ' + JSON.stringify(addKeyError), 'danger')
+			} else {
+				toast('Key installed', 'success')
+			}
+
 		}
 		machinekeys = await pb.collection('machine_key').getFullList({})
 	}

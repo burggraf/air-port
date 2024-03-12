@@ -26,8 +26,8 @@ RUN unzip /tmp/pb.zip -d /
 RUN rm /CHANGELOG.md
 RUN rm /LICENSE.md
 RUN rm /tmp/pb.zip
-RUN adduser -h /pb/home/user -D user
-RUN mkdir -p /pb/home/user/.ssh
+#RUN adduser -h /pb/home/user -D user
+#RUN mkdir -p /pb/home/user/.ssh
 COPY ./marmot .
 #COPY ./nats-server .
 COPY ./nats .
@@ -38,6 +38,7 @@ COPY ./start_litestream.sh .
 COPY ./start_marmot.sh .
 COPY ./stop_litestream.sh .
 COPY ./stop_marmot.sh .
+COPY ./add-key.sh .
 
 # RUN mkdir -p /pb/.ssh
 COPY ./sshd_config /etc/ssh/sshd_config
