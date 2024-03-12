@@ -32,21 +32,23 @@ routerAdd('POST', '/ssh-add-key', async (c) => {
     let output;
 	try {
 		cmd = $os.cmd(
-			`/pb/ssh-adduser`,
+            `/pb/ssh-adduser`,
 			`${Domain}`,
 		)
+        console.log('cmd', cmd)
 		output = String.fromCharCode(...cmd.output())
 	} catch (err) {
 		console.log('could not complete ssh-adduser', err)
 		return c.json(200, { data: null, error: err })
 	}
+    console.log('/pb/ssh-adduser output:', output)
     const air_port_app_key = output
     console.log('ssh-add-key 04', air_port_app_key)
 	try {
 		cmd = $os.cmd(
 			`/pb/ssh-add-key`,
-			`${Domain}`,
-            `${public_key}`
+            `${Domain}`,
+            `${public_key}`,
 		)
 		output = String.fromCharCode(...cmd.output())
 	} catch (err) {
