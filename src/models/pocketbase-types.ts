@@ -81,6 +81,7 @@ export type MachinesRecord<Tconfig = unknown, Tevents = unknown, Timage_ref = un
 }
 
 export type UserKeysRecord = {
+	id?: string
 	key?: string
 	sort_key?: number
 	title?: string

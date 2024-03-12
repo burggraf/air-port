@@ -4,9 +4,11 @@
 	import IonPage from '$ionpage'
 	import { page } from '$app/stores'
 	import * as allIonicIcons from 'ionicons/icons'
-	import type { AppsRecord, MachinesRecord, IObjectKeys, MachineKeyRecord } from '$models/pocketbase-types'
+	import type { AppsRecord, MachinesRecord, IObjectKeys, MachineKeyRecord, UserKeysRecord } from '$models/pocketbase-types'
 	import { chooseRegion, getRegionName } from '$services/region.service'
 	import Keys from '$components/Keys.svelte'
+	import { modalController } from '$ionic/svelte'
+	import keyModal from '$components/keyModal.svelte'
 
 	import {
 		addOutline,
@@ -45,7 +47,9 @@
 	import { dropdownmenu } from '$components/DropdownMenu'
 	import { version } from '$app/environment'
 	import { checkDomainAvailability } from '$services/app-utils.service'
+	import { onMount } from 'svelte'
 
+	let keys: UserKeysRecord[] = []
 	let machinekeys: MachineKeyRecord[] = []
 	let machines: MachinesRecord[] = []
 	$: machines = [...machines]
@@ -68,6 +72,29 @@
 		localStorage.setItem('page', window.location.pathname)
 		await updateStatus()
 	}
+	onMount(async () => {
+		// const reorderGroup = document.getElementById('keygroup')
+		// if (reorderGroup) {
+		// 	reorderGroup.addEventListener('ionItemReorder', async ({ detail }) => {
+		// 		// console.log('Dragged from index', detail.from, 'to', detail.to)
+		// 		const itemToMove = keys.splice(detail.from, 1)[0];
+		// 	    keys.splice(detail.to, 0, itemToMove);
+		// 		updateKeyOrder()
+		// 		detail.complete()
+		// 		//loadKeys();
+		// 	})
+		// }
+	})
+	const updateKeyOrder = async () => {
+		console.log('updateKeyOrder...')
+		for (let i = 0; i < keys.length; i++) {
+			console.log('i', i)
+			const key: UserKeysRecord = keys[i]
+			console.log('key', key)
+			key.sort_key = i
+			await pb.collection('user_keys').update(key.id, key)
+		}
+	}
 	const loadData = async () => {
 		// let loader = await loadingBox('Loading app info...')
 		try {
@@ -89,14 +116,27 @@
 				filter: `Domain = '${app.Domain}'`,
 				// sort: 'name,type,site_name,instance_status',
 			})
+			loadKeys()
 			console.log('*** loading machinekeys')
-			machinekeys = await pb.collection('machine_key').getFullList({
-			})
+			machinekeys = await pb.collection('machine_key').getFullList({})
 			for (let i = 0; i < machines.length; i++) {
 				machines[i].keys = machinekeys.filter((mk) => mk.machine === machines[i].id)
 			}
 			console.log('machines', machines)
 			console.log('machinekeys', machinekeys)
+			for (let i = 0; i < machines.length; i++) {
+				const reorderGroup = document.getElementById(`keygroup-${machines[i].id}`)
+				if (reorderGroup) {
+					reorderGroup.addEventListener('ionItemReorder', async ({ detail }) => {
+						// console.log('Dragged from index', detail.from, 'to', detail.to)
+						const itemToMove = keys.splice(detail.from, 1)[0];
+						keys.splice(detail.to, 0, itemToMove);
+						updateKeyOrder()
+						detail.complete()
+						//loadKeys();
+					})
+				}
+			}
 			// loader.dismiss()
 		}
 
@@ -108,6 +148,7 @@
 		form.Domain = app.Domain || ''
 		form.type = app.type || ''
 	}
+
 	const updateStatus = async () => {
 		// const loader = await loadingBox('Updating app status...')
 		try {
@@ -463,6 +504,58 @@
 	const ionTabsDidChange = async (item: string) => {
 		console.log('ionTabsDidChange', item)
 	}
+	const addKey = async () => {
+		await showKeyModal()
+	}
+	const editKey = async (key: any) => {
+		await showKeyModal(key)
+	}
+	const showKeyModal = async (key?: any) => {
+		const modal = await modalController.create({
+			component: keyModal,
+			componentProps: {data: key},
+			showBackdrop: true,
+			backdropDismiss: false,
+		})
+
+		modal.onDidDismiss().then((value) => {
+			//if (value.role === 'backdrop') console.log('Backdrop clicked');
+			loadKeys()
+		})
+
+		await modal.present()
+	}
+	const loadKeys = async () => {
+		keys = await pb.collection('user_keys').getFullList({
+                fields: 'id,title,key,sort_key',
+				sort: 'sort_key',
+			});
+		console.log('keys', keys);
+	}
+	const toggleKeyInstallation = async (machine: any, key: UserKeysRecord) => {
+		console.log('toggleKeyInstallation', machine, key)
+		// machine.keys.find((k) => k.key === key.id))
+		const isInstalled = (machine.keys.find((k: any) => k.key === key.id) !== undefined) 
+		console.log('isInstalled', isInstalled)
+		if (isInstalled) {
+			// remove it
+			const machine_key = machine.keys.find((mk: any) => mk.key === key.id)
+			console.log('machine_key', machine_key)
+			const result = await pb.collection('machine_key').delete(machine_key.id)
+			console.log('removal result', result)
+		} else {
+			// add it
+			const result = await pb.collection('machine_key').create({
+				machine: machine.id,
+				key: key.id,
+				machine_id: machine.machine_id,
+				user: $currentUser.id,
+			})
+			console.log('install result', result)
+		}
+		machinekeys = await pb.collection('machine_key').getFullList({})
+	}
+
 </script>
 
 <IonPage {ionViewWillEnter}>
@@ -1097,32 +1190,50 @@
 													</ion-tab>
 													<ion-tab tab="keys" style="overflow-y: scroll;">
 														<div>
-															<ion-item-divider color="light">
-																<ion-label>Installed Keys:</ion-label>
-															</ion-item-divider>
-															{#each (machine.keys || []) as machinekey}
-																machinekey...
-															{/each}
-															{#if machine?.keys?.length === 0}
-																<div class="ion-padding">
-																	<ion-button
-																		size="small"
-																		expand="block"
-																		fill={'outline'}
-																		color="dark"
-																		on:click={() => {
-																			console.log('not ready')
-																		}}
-																	>
-																		<ion-icon
-																			slot="start"
-																			icon={cloudUploadOutline}
-																		/> Upload Public SSH Key to Machine
-																	</ion-button>
-																</div>
-															{/if}
 
-															<div class="ion-padding">
+															<ion-grid class="ion-padding Grid">
+																<ion-row>
+																	<ion-col>
+																		<ion-item-divider>Installed on this machine:</ion-item-divider>
+																			{#each keys as key}
+																				<ion-item>
+																					<ion-label>{key.title || "Unnamed Public SSH Key"}</ion-label>
+																					<ion-toggle
+																						on:ionChange|stopPropagation|preventDefault={()=>{toggleKeyInstallation(machine,key)}}
+																						slot="end"
+																						checked={Array.isArray(machine.keys) ? (machine.keys.find((k) => k.key === key.id)) : false}
+																						disabled={false} />
+																				</ion-item>
+																			{/each}
+																	</ion-col>
+																</ion-row>
+															</ion-grid>													
+															
+															
+															<ion-grid class="ion-padding Grid">
+																<ion-row>
+																	<ion-col>
+																		<ion-item-divider>My Public SSH Keys</ion-item-divider>
+																		<ion-reorder-group id={`keygroup-${machine.id}`} disabled={false}>
+																			{#each keys as key}
+																				<ion-item on:click={()=>{editKey(key)}}>
+																					<ion-label>{key.title || "Unnamed Public SSH Key"}</ion-label>
+																					<ion-reorder slot="end" />
+																				</ion-item>
+																			{/each}
+																		</ion-reorder-group>
+																		<ion-item lines="none">
+																			<ion-button style="width: 100%;" size="small" fill="outline" color="dark" expand="block" on:click={addKey}>
+																				<ion-icon slot="icon-only" icon={addOutline} />
+																				<ion-label>Add New Public SSH Key</ion-label>
+																			</ion-button>
+																		</ion-item>
+																	</ion-col>
+																</ion-row>
+															</ion-grid>
+													
+															
+															<!-- <div class="ion-padding">
 																<ion-button
 																	size="small"
 																	expand="block"
@@ -1141,7 +1252,7 @@
 
 															{#if machine.showKeys}
 																<Keys />
-															{/if}
+															{/if} -->
 														</div>
 													</ion-tab>
 
@@ -1229,6 +1340,10 @@
 				</ion-col></ion-row
 			></ion-grid
 		>
+
+
+		
+
 	</ion-content>
 </IonPage>
 
@@ -1245,4 +1360,8 @@
 	.restoreButton {
 		padding: 10px;
 	}
+	.Grid {
+		max-width: 500px;
+	}
+
 </style>
