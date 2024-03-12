@@ -2,7 +2,7 @@
 	const versions: string[] = ['0.22.2','0.22.1','0.22.0', '0.21.3', '0.21.2', '0.21.1', '0.21.0']
 	import '$styles/grid-styles.css'
 	//@ts-ignore
-	import * as wordSlug from 'word-slug'
+	import { wordSlug } from '$services/word-slug.service'
 	import IonPage from '$ionpage'
 	import { page } from '$app/stores'
 	import * as allIonicIcons from 'ionicons/icons'
