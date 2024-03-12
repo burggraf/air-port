@@ -1,0 +1,52 @@
+#!/bin/sh
+echo "" >> /pb/sshd.log
+echo "" >> /pb/sshd.log
+#DOMAIN_NAME=$1
+DOMAIN_NAME=`whoami`
+echo "invoked /pb/ssh-proxy-script with DOMAIN_NAME: $DOMAIN_NAME" >> /pb/sshd.log
+#IPV6_ADDRESS=$(/pocketbase --dir /pb/pb_data --hooksDir /pb/pb_hooks get-private-ip $DOMAIN_NAME | awk '{print $NF}')
+#IPV6_ADDRESS=$(curl -s https://air-port-app.fly.dev/get-private-ip/$DOMAIN_NAME)
+IPV6_ADDRESS=$(curl -s https://air-port-app.fly.dev/get-private-ip/$DOMAIN_NAME | sed -e 's/^"//' -e 's/"$//')
+# echo `whoami` >> /pb/sshd.log
+
+echo "DOMAIN_NAME is $DOMAIN_NAME" >> /pb/sshd.log
+echo "*** IPV6_ADDRESS is $IPV6_ADDRESS" >> /pb/sshd.log
+remote_port=2222
+
+echo "calling ssh" >> /pb/sshd.log
+
+curl -s "https://$DOMAIN_NAME.fly.dev/api/health" >> /pb/sshd.log
+
+echo "The command was $SSH_ORIGINAL_COMMAND" >> /pb/sshd.log
+
+# Check if the command is SCP or SFTP by examining the SSH_ORIGINAL_COMMAND environment variable
+if [ -n "$SSH_ORIGINAL_COMMAND" ]; then
+    case "$SSH_ORIGINAL_COMMAND" in
+        *sftp* )
+            echo "EXECUTING ssh command here..." >> /pb/sshd.log
+	    echo "exec ssh -i /pb/.ssh/id_rsa -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -p $remote_port \"root@$IPV6_ADDRESS\" \"$SSH_ORIGINAL_COMMAND\"" >> /pb/sshd.log
+            exec ssh -i /pb/.ssh/id_rsa -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -p $remote_port "root@$IPV6_ADDRESS" /usr/lib/ssh/sftp-server
+            ;;
+        *)
+            echo "EXECUTING ssh fallback command here..." >> /pb/sshd.log
+            # Fallback to the default behavior for SSH
+            exec ssh \
+	        -i /pb/.ssh/id_rsa \
+                -o "ServerAliveInterval 30" \
+                -o "ServerAliveCountMax 3" \
+                -L 2223:[$IPV6_ADDRESS]:$remote_port \
+                "root@$IPV6_ADDRESS" \
+                -p $remote_port
+            ;;
+    esac
+else
+    echo "SSH_ORIGINAL_COMMAND is not set, EXECUTING else statement - ssh command here..." >> /pb/sshd.log
+    # If SSH_ORIGINAL_COMMAND is not set, just proceed with the SSH connection setup
+    exec ssh \
+        -o "ServerAliveInterval 30" \
+        -o "ServerAliveCountMax 3" \
+        -L 2223:[$IPV6_ADDRESS]:$remote_port \
+        "root@$IPV6_ADDRESS" \
+        -p $remote_port
+fi
+

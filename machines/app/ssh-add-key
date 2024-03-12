@@ -1,0 +1,5 @@
+#!/bin/sh
+USER="$1"
+KEY="$2"
+AUTH_KEYS="/pb/home/$USER/.ssh/authorized_keys"
+grep -qxF "$KEY" "$AUTH_KEYS" || echo "$KEY" >> "$AUTH_KEYS"

@@ -1,0 +1,12 @@
+#!/bin/sh
+if [ ! -f /pb/home/$1/.ssh/id_rsa.pub ]; then
+  adduser $1 -h /pb/home/$1 -D > /dev/null
+  passwd -u $1 > /dev/null 2>&1
+  mkdir -p /pb/home/$1/.ssh > /dev/null
+  ssh-keygen -t rsa -b 4096 -f /pb/home/$1/.ssh/id_rsa -N "" > /dev/null
+  touch /pb/home/$1/.ssh/authorized_keys > /dev/null
+  chmod 600 /pb/home/$1/.ssh/authorized_keys > /dev/null
+  chown $1:$1 /pb/home/$1/.ssh/authorized_keys > /dev/null
+  chown $1:$1 /pb/home/$1/.ssh/id_rsa*
+fi
+cat /pb/home/$1/.ssh/id_rsa.pub
