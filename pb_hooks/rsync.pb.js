@@ -72,12 +72,22 @@ routerAdd('POST', '/rsync', async (c) => {
     )
     if (dataError) return c.json(200, { data: null, error: dataError })
 
+    // START MARMOT ON THE PRIMARY MACHINE
+    const { data: marmotStartData, error: marmotStartError } = await runRemote(
+        Domain,
+        primaryMachine.machine_id,
+        primaryMachine.private_ip,
+        `/start_marmot.sh`)
+        // `/bin/sh -c "/reset_marmot.sh"`)
+    if (marmotStartError) return c.json(200, { data: null, error: marmotStartError })
+
     // RESTART MARMOT ON THE TARGET MACHINE
     const { data: marmotData, error: marmotError } = await runRemote(
         Domain,
         targetMachine.machine_id,
         targetMachine.private_ip,
-        `/bin/sh -c "/reset_marmot.sh"`)
+        `/reset_marmot.sh`)
+        // `/bin/sh -c "/reset_marmot.sh"`)
     if (marmotError) return c.json(200, { data: null, error: marmotError })
 
     return c.json(200, { data: 'OK', error: null })

@@ -177,7 +177,7 @@
 		<div class="login">
 			<ion-menu-toggle auto-hide={false}>
 				<Login
-					providers={['google', 'facebook', 'github']}
+					providers={['google', 'github']}
 					onSignOut={() => {
 						localStorage.clear()
 						// goto('/');
