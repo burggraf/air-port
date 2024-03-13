@@ -126,10 +126,10 @@
 			<div class="flex-item secondary">
 				<h3>What is air-port?</h3>
 				<ul>
-					<li>Pocketbase Hosting in 5 seconds</li>
+					<li>Pocketbase Hosting in a minute</li>
 					<li>High Availabilty</li>
 					<li>Globally Distributed</li>
-					<li>Read-Only or Read-Write Replicas</li>
+					<li>Read-Write Replicas</li>
 					<li>Easy Management Tools</li>
 				</ul>
 			</div>
@@ -138,8 +138,8 @@
 				<ul>
 					<li>Setup Globally Distributed Replicas</li>
 					<li>Automatic Replication Setup</li>
+					<li>Geographic Routing</li>
 					<li>Failover Handling</li>
-					<li>Direct Access to Regional Instances</li>
 					<li>Streaming Backups to S3 (with PITR)</li>
 				</ul>
 			</div>
@@ -149,18 +149,18 @@
 					<li>Create & Manage Apps</li>
 					<li>Create & Manage Replicas</li>
 					<li>Full Pocketbase Admin Access</li>
-					<li>Clone App (Prod/Staging/Dev)</li>
+					<li>ssh/scp/sftp/rsync Access</li>
 					<li>Online Management Tools</li>
 				</ul>
 			</div>
 			<div class="flex-item secondary">
 				<h3>Advanced Features</h3>
 				<ul>
-					<li>Manage Instance Status</li>
-					<li>View/Edit Project Files</li>
-					<li>Deploy Files with ssh/scp, sftp</li>
-					<li>Pocketbase Logs</li>
-					<li>Site Metrics: cpu, memory, disk, network</li>
+					<li>coming soon...</li>
+					<li>coming soon...</li>
+					<li>coming soon...</li>
+					<li>coming soon...</li>
+					<li>coming soon...</li>
 				</ul>
 			</div>
 			<div class="flex-item tertiary">
